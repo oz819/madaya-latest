@@ -822,3 +822,15 @@ button:focus-visible,a:focus-visible{box-shadow:0 0 0 4px rgba(212,175,55,.2)}
 .lx-footer .dev-credit{margin:40px auto 10px}
 @keyframes lx-sheen{0%,100%{background-position:100% 0}50%{background-position:0 0}}
 @media(prefers-reduced-motion:reduce){.login-overlay,.login-overlay .loginbox,.lg-logo::before,.lx-title .lx-gold{animation:none}}
+/* signature in the first screen: centred in the hero's bottom bar */
+.lx-hero-foot{align-items:center;z-index:2}
+.lx-hero-foot .dev-credit{margin:0;position:absolute;left:50%;transform:translateX(-50%);background:rgba(4,20,15,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.lx-hero-foot .dev-credit:hover{transform:translateX(-50%) translateY(-2px)}
+@media(max-width:900px){
+  .lx-hero{padding-bottom:140px}
+  .lx-hero-foot{flex-direction:column;gap:12px;justify-content:center;text-align:center}
+  .lx-hero-foot span:first-child{max-width:none}
+  .lx-hero-foot .dev-credit{position:static;transform:none}
+  .lx-hero-foot .dev-credit:hover{transform:translateY(-2px)}
+  .lx-hero-foot .lx-scroll{display:none}
+}

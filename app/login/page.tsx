@@ -174,6 +174,7 @@ export default function LoginPage() {
         </div>
         <div className="lx-hero-foot">
           <span>تأسّس ٢٠٢٥ · بإشراف د. محمد العبده</span>
+          <DevCredit compact />
           <span className="lx-scroll" aria-hidden="true"><i /></span>
         </div>
       </section>
