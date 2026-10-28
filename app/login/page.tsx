@@ -9,6 +9,7 @@ import { createClient } from "@/utils/supabase/client";
 import { NOT_REGISTERED_MESSAGE } from "@/lib/messages";
 import { FacebookIcon, GitHubIcon, InstagramIcon, WhatsAppIcon } from "@/components/SocialIcons";
 import StarField from "@/components/landing/StarField";
+import DevCredit from "@/components/landing/DevCredit";
 import Features from "@/components/landing/Features";
 import { useReveal } from "@/components/landing/useReveal";
 
@@ -222,7 +223,7 @@ export default function LoginPage() {
       <section className="lx-section lx-map" data-reveal>
         <div>
           <div className="lx-kicker"><i />خريطة الحفظ</div>
-          <h2>وين وصل ابنك؟<br /><span className="lx-gold">بنظرة وحدة.</span></h2>
+          <h2>أين وصل ابنك؟<br /><span className="lx-gold">بنظرة واحدة.</span></h2>
           <p className="lx-muted">كل جزء يحفظه الطالب يضيء على خريطته. وليّ الأمر يتابعها من رابطه الخاص، والمعلّم يعرف من يحتاج مراجعة.</p>
         </div>
         <div className="lx-juz" aria-label="مثال توضيحي لخريطة الحفظ">
@@ -261,6 +262,7 @@ export default function LoginPage() {
             <GitHubIcon /> GitHub
           </a>
         </div>
+        <DevCredit />
         <div className="lx-giant" aria-hidden="true">مضايا</div>
       </footer>
 
@@ -271,11 +273,16 @@ export default function LoginPage() {
               ✕
             </button>
             <div className="brand">
+              <span className="lg-logo"><Image src="/images/logo.png" alt="" width={76} height={76} /></span>
               <h1 className="brand-main">مركز مضايا الثقافي</h1>
               <h2 className="brand-sub">حلقات القرآن</h2>
               <div className="brand-divider" />
             </div>
             <p className="center muted">منظومة متابعة الحفظ والمراجعة والتلاوة والنمو التربوي</p>
+            <ol className="lg-steps" aria-label="خطوات الدخول">
+              <li className="on">البريد الإلكتروني</li>
+              <li className={step === "code" ? "on" : ""}>كود الدخول</li>
+            </ol>
 
             {step === "email" ? (
               <form onSubmit={sendCode} style={{ marginTop: 18 }}>
@@ -325,6 +332,7 @@ export default function LoginPage() {
                 </button>
               </form>
             )}
+            <DevCredit compact />
           </div>
         </div>
       )}

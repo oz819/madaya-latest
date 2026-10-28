@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
@@ -29,11 +29,48 @@ import Toast, { useToast } from "@/components/Toast";
 type Page = "students" | "talqeen" | "reports" | "ranking" | "dashboard" | "manage" | "trash" | "audit";
 
 const NAV: { id: Page; label: string }[] = [
-  { id: "students", label: "👨‍🎓 الطلاب" },
-  { id: "talqeen", label: "🎙️ التلقين" },
-  { id: "reports", label: "📊 التقارير" },
-  { id: "ranking", label: "⭐ المتفوقون" },
+  { id: "students", label: "الطلاب" },
+  { id: "talqeen", label: "التلقين" },
+  { id: "reports", label: "التقارير" },
+  { id: "ranking", label: "المتفوقون" },
 ];
+
+const ADMIN_NAV: { id: Page; label: string }[] = [
+  { id: "dashboard", label: "اللوحة" },
+  { id: "manage", label: "الإدارة" },
+  { id: "trash", label: "سجل المحذوفات" },
+  { id: "audit", label: "سجل التعديلات" },
+];
+
+// Stroke icons for the tab bar (24px grid).
+const NAV_ICON: Record<Page, string> = {
+  students: "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a6 6 0 0 1 12 0v1M16 3.5a4 4 0 0 1 0 7.5M22 21v-1a6 6 0 0 0-4-5.6",
+  talqeen: "M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3",
+  reports: "M4 20V10M10 20V4M16 20v-7M22 20H2",
+  ranking: "M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z",
+  dashboard: "M4 4h6v8H4zM14 4h6v5h-6zM14 13h6v7h-6zM4 16h6v4H4z",
+  manage: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z",
+  trash: "M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3",
+  audit: "M8 4h8v3H8zM6 5H5v16h14V5h-1M9 12h6M9 16h4",
+};
+
+function NavButton({ id, label, active, onClick }: { id: Page; label: string; active: boolean; onClick: () => void }) {
+  const ref = useRef<HTMLButtonElement>(null);
+  // On phones the tab bar is one scrolling row: keep the open tab in view.
+  useEffect(() => {
+    const b = ref.current, row = b?.parentElement;
+    if (!active || !b || !row || row.scrollWidth <= row.clientWidth) return;
+    row.scrollTo({ left: b.offsetLeft - (row.clientWidth - b.offsetWidth) / 2, behavior: "smooth" });
+  }, [active]);
+  return (
+    <button ref={ref} className={active ? "active" : ""} onClick={onClick} aria-current={active ? "page" : undefined}>
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d={NAV_ICON[id]} />
+      </svg>
+      <span>{label}</span>
+    </button>
+  );
+}
 
 type CachedProfile = { userId: string; profile: Profile };
 
@@ -210,7 +247,12 @@ export default function AppShell() {
             </span>
             <div className="userbox-actions">
               <SyncBadge />
-              <button onClick={logout}>خروج</button>
+              <button className="logout" onClick={logout}>
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10" />
+                </svg>
+                خروج
+              </button>
             </div>
           </div>
         </div>
@@ -218,27 +260,9 @@ export default function AppShell() {
 
       <nav className="no-print sliding">
         <SlidingIndicator active={page} />
-        {NAV.map((n) => (
-          <button key={n.id} className={page === n.id ? "active" : ""} onClick={() => setPage(n.id)}>
-            {n.label}
-          </button>
+        {(profile.role === "ADMIN" ? [...NAV, ...ADMIN_NAV] : NAV).map((n) => (
+          <NavButton key={n.id} id={n.id} label={n.label} active={page === n.id} onClick={() => setPage(n.id)} />
         ))}
-        {profile.role === "ADMIN" && (
-          <>
-            <button className={page === "dashboard" ? "active" : ""} onClick={() => setPage("dashboard")}>
-              📈 اللوحة
-            </button>
-            <button className={page === "manage" ? "active" : ""} onClick={() => setPage("manage")}>
-              ⚙️ الإدارة
-            </button>
-            <button className={page === "trash" ? "active" : ""} onClick={() => setPage("trash")}>
-              🗑️ سجل المحذوفات
-            </button>
-            <button className={page === "audit" ? "active" : ""} onClick={() => setPage("audit")}>
-              📜 سجل التعديلات
-            </button>
-          </>
-        )}
       </nav>
 
       <main>

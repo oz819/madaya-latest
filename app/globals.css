@@ -750,3 +750,75 @@ main>*:nth-child(3) .card,main>.card:nth-child(3){animation-delay:.08s}
   .lx *,.lx *::before,.lx *::after{animation:none!important;transition:none!important}
   [data-reveal]{opacity:1;transform:none}
 }
+
+/* ==== Refinements (redesign-preview): icon tab bar, mobile ergonomics, login dialog, signature ==== */
+@media screen{
+/* tab bar: icon + label; one scrolling row on phones instead of three wrapped rows */
+nav{gap:4px;padding:8px max(10px,env(safe-area-inset-right)) 8px max(10px,env(safe-area-inset-left))}
+nav>button{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:12px;font-weight:600;white-space:nowrap}
+nav>button svg{flex:none;opacity:.85}
+nav>button.active svg{opacity:1}
+@media(max-width:760px){
+  nav{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 18px,#000 calc(100% - 18px),transparent);mask-image:linear-gradient(90deg,transparent,#000 18px,#000 calc(100% - 18px),transparent)}
+  nav::-webkit-scrollbar{display:none}
+  nav>button{scroll-snap-align:center;padding:10px 14px}
+}
+
+/* header: thin gold ornament under it, quieter account box */
+header{position:relative}
+header::after{content:"";position:absolute;inset:auto 0 -1px;height:1px;background:linear-gradient(90deg,transparent,rgba(246,227,161,.9),transparent)}
+.userbox>span{color:rgba(237,230,211,.75)}
+.userbox button.logout{display:inline-flex;align-items:center;gap:6px}
+
+/* focus that is visible on the dark theme */
+:focus-visible{outline:2px solid #e8cf8a;outline-offset:2px}
+button:focus-visible,a:focus-visible{box-shadow:0 0 0 4px rgba(212,175,55,.2)}
+
+/* phones: 16px fields stop iOS zooming in, and every control is a comfortable tap target */
+@media(max-width:650px){
+  input,select,textarea{font-size:16px}
+  button,a.btn,.chip{min-height:42px}
+  button.link,.juz-cell,button.juz-cell,.login-close,header button{min-height:0}
+  .userbox-actions{flex-direction:column;align-items:stretch;gap:5px}
+  .userbox-actions button,.sync-badge{padding:6px 9px;font-size:11px;justify-content:center;white-space:nowrap}
+  .headerrow{min-width:0}
+  main{padding:10px 10px calc(16px + env(safe-area-inset-bottom))}
+  .card{padding:14px;border-radius:16px}
+}
+}
+
+/* login dialog */
+.login-overlay{animation:fade-in .25s ease-out}
+.login-overlay .loginbox{max-width:440px;padding:30px 26px 18px;border-radius:26px;animation:lg-pop .45s cubic-bezier(.16,1,.3,1)}
+.lg-logo{position:relative;display:inline-block;margin:0 auto 12px;border-radius:50%}
+.lg-logo::before{content:"";position:absolute;inset:-18px;border-radius:50%;background:radial-gradient(circle,rgba(232,207,138,.45),transparent 65%);animation:halo-breathe 6s ease-in-out infinite;transform:none}
+.lg-logo img{position:relative;display:block;border-radius:50%;box-shadow:0 0 0 2px rgba(212,175,55,.8),0 10px 30px rgba(0,0,0,.45)}
+.brand-main{font-family:var(--font-reem-kufi),Tahoma,sans-serif}
+.lg-steps{list-style:none;display:flex;gap:8px;margin:16px 0 0;padding:0;counter-reset:s}
+.lg-steps li{flex:1;counter-increment:s;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;font-size:12px;color:rgba(237,230,211,.45);border:1px solid rgba(212,175,55,.14);transition:all .35s}
+.lg-steps li::before{content:counter(s);display:grid;place-items:center;width:22px;height:22px;border-radius:50%;font-weight:700;background:rgba(255,255,255,.06)}
+.lg-steps li.on{color:#ede6d3;border-color:rgba(212,175,55,.45);background:rgba(212,175,55,.08)}
+.lg-steps li.on::before{background:linear-gradient(135deg,#f6e3a1,#d4af37);color:#04140f}
+.otp-input{font-family:ui-monospace,Menlo,monospace;letter-spacing:.55em;padding-inline-start:.55em;font-size:26px;height:58px;direction:ltr}
+@keyframes lg-pop{from{opacity:0;transform:translateY(18px) scale(.97)}}
+
+/* developer signature */
+.dev-credit{display:flex;flex-direction:column;align-items:center;gap:4px;width:fit-content;margin:34px auto 0;padding:14px 26px;border-radius:18px;border:1px solid rgba(212,175,55,.22);background:linear-gradient(180deg,rgba(212,175,55,.07),transparent);text-decoration:none;transition:border-color .3s,transform .3s,background .3s}
+.dev-credit:hover{border-color:rgba(212,175,55,.6);transform:translateY(-2px);background:linear-gradient(180deg,rgba(212,175,55,.12),transparent)}
+.dev-by{font-family:ui-sans-serif,system-ui,sans-serif;font-size:10px;letter-spacing:.42em;color:rgba(237,230,211,.5);padding-left:.42em}
+.dev-name{font-family:"Georgia","Times New Roman",serif;font-size:19px;letter-spacing:.04em;background:linear-gradient(100deg,#f6e3a1,#d4af37 55%,#f6e3a1);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dev-ig{display:grid;place-items:center;margin-top:4px;color:#d4af37;transition:transform .3s}
+.dev-ig svg{width:18px;height:18px}
+.dev-credit:hover .dev-ig{transform:scale(1.15)}
+.dev-credit.compact{flex-direction:row;gap:8px;margin:18px auto 0;padding:8px 14px;border-radius:999px}
+.dev-credit.compact .dev-by{font-size:8.5px;letter-spacing:.3em}
+.dev-credit.compact .dev-name{font-size:13px}
+.dev-credit.compact .dev-ig{margin:0}
+.dev-credit.compact .dev-ig svg{width:14px;height:14px}
+
+/* landing: film grain + a slow light sweep across the gold line of the title */
+.lx::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.045;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.lx-title .lx-gold{background:linear-gradient(100deg,#b8892b 0%,#d4af37 30%,#fff3c4 45%,#d4af37 60%,#b8892b 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;animation:lx-up 1.2s cubic-bezier(.16,1,.3,1) .5s both,lx-sheen 7s ease-in-out 2s infinite}
+.lx-footer .dev-credit{margin:40px auto 10px}
+@keyframes lx-sheen{0%,100%{background-position:100% 0}50%{background-position:0 0}}
+@media(prefers-reduced-motion:reduce){.login-overlay,.login-overlay .loginbox,.lg-logo::before,.lx-title .lx-gold{animation:none}}
