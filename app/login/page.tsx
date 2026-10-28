@@ -2,11 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Amiri, Reem_Kufi } from "next/font/google";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { NOT_REGISTERED_MESSAGE } from "@/lib/messages";
 import { FacebookIcon, GitHubIcon, InstagramIcon, WhatsAppIcon } from "@/components/SocialIcons";
+import StarField from "@/components/landing/StarField";
+import Features from "@/components/landing/Features";
+import { useReveal } from "@/components/landing/useReveal";
 
 // Amiri for the about text, Reem Kufi for headings (exposed as CSS variables, see globals.css).
 const amiri = Amiri({ subsets: ["arabic"], weight: ["400", "700"], variable: "--font-amiri", display: "swap" });
@@ -16,6 +20,18 @@ const SOCIAL_LINKS = [
   { href: "https://www.facebook.com/share/1HjPsLvumo/", label: "صفحتنا على فيسبوك", Icon: FacebookIcon },
   { href: "https://www.instagram.com/lmrkzlthqfyldwy", label: "حسابنا على انستغرام", Icon: InstagramIcon },
   { href: "https://wa.me/963993323763", label: "تواصل معنا عبر واتساب", Icon: WhatsAppIcon },
+];
+
+const MARQUEE = ["حفظ", "تلاوة", "تجويد", "تدبّر", "إتقان", "مراجعة", "إجازة"];
+
+const JOURNEY: [string, string][] = [
+  ["التسجيل", "يملأ وليّ الأمر طلب التسجيل من الموقع خلال دقيقة."],
+  ["الحلقة", "يُوزَّع الطالب على حلقة تناسب عمره ومستواه."],
+  ["التسميع اليومي", "يسمّع حفظه ومراجعته، ويُسجَّل التقدير فورًا."],
+  ["خريطة الحفظ", "كل جزء يحفظه يضيء على خريطته."],
+  ["متابعة الأهل", "تقارير دورية وتنبيه عند الغياب تصل وليّ الأمر."],
+  ["الاختبار", "اختبار عند إتمام كل جزء."],
+  ["الشهادة والتكريم", "شهادة إتمام، وتكريم للمتفوّقين."],
 ];
 
 type Step = "email" | "code";
@@ -29,6 +45,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   // The page opens on the centre's landing view; the existing login form shows in a dialog.
   const [showLogin, setShowLogin] = useState(false);
+  useReveal();
 
   useEffect(() => {
     if (!showLogin) return;
@@ -111,81 +128,141 @@ export default function LoginPage() {
   }
 
   return (
-    <div className={`landing islamic-bg ${amiri.variable} ${reemKufi.variable}`} dir="rtl" lang="ar">
-      {/* Decorative, CSS-only background motion (see "Landing motion" in globals.css). */}
-      <div className="landing-sky" aria-hidden="true">
-        {/* Large soft light blobs drifting at different speeds, like a calm aurora. */}
-        {[...Array(5)].map((_, i) => (
-          <span key={i} className={`aurora a${i + 1}`} />
-        ))}
-        {/* Faint gold eight-point-star lattice drifting diagonally. */}
-        <div className="landing-pattern" />
-        <div className="landing-art">
-          <span className="moon-glow" />
+    <div className={`lx ${amiri.variable} ${reemKufi.variable}`} dir="rtl" lang="ar">
+      <header className="lx-nav">
+        <a href="#top" className="lx-brand">
+          <Image src="/images/logo.png" alt="" width={40} height={40} />
+          <span>مركز مضايا</span>
+        </a>
+        <nav className="lx-links" aria-label="أقسام الصفحة">
+          <a href="#about">عن المركز</a>
+          <a href="#journey">رحلة الحافظ</a>
+          <a href="#features">المنصّة</a>
+          <a href="#join">التسجيل</a>
+        </nav>
+        <button type="button" className="lx-login" onClick={() => setShowLogin(true)} aria-haspopup="dialog">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
+          </svg>
+          <span>تسجيل الدخول</span>
+        </button>
+      </header>
+
+      <section id="top" className="lx-hero">
+        <div className="lx-hero-bg" aria-hidden="true" />
+        <StarField className="lx-stars" />
+        <div className="lx-hero-text">
+          <p className="lx-hadith">«خَيْرُكُم مَنْ تَعَلَّمَ القُرْآنَ وَعَلَّمَهُ»</p>
+          <h1 className="lx-title">
+            <span className="lx-line"><span>منارةٌ للعلم</span></span>
+            <span className="lx-line"><span className="lx-gold">والهدى في مضايا</span></span>
+          </h1>
+          <p className="lx-lead">
+            المركز الثقافي الدعوي في مضايا بريف دمشق: حلقات تحفيظ ودورات علمية وأنشطة للشباب، ومنظومة رقمية تتابع حفظ كل طالب آيةً بآية.
+          </p>
+          <div className="lx-cta">
+            <Link href="/register" className="lx-btn">
+              <span>سجّل في الحلقات</span>
+              <i aria-hidden="true">←</i>
+            </Link>
+            <button type="button" className="lx-ghost" onClick={() => setShowLogin(true)}>
+              دخول المعلّمين والإدارة
+            </button>
+          </div>
         </div>
-        {[...Array(7)].map((_, i) => (
-          <span key={i} className={`twinkle t${i + 1}`} />
-        ))}
+        <div className="lx-hero-foot">
+          <span>تأسّس ٢٠٢٥ · بإشراف د. محمد العبده</span>
+          <span className="lx-scroll" aria-hidden="true"><i /></span>
+        </div>
+      </section>
+
+      <div className="lx-marquee" aria-hidden="true">
+        <div>
+          {[0, 1].map((k) => (
+            <span key={k}>
+              {MARQUEE.map((w, i) => (
+                <span key={i} className={i % 2 ? "lx-outline" : ""}>{w}<b>✦</b></span>
+              ))}
+            </span>
+          ))}
+        </div>
       </div>
 
-      <button type="button" className="login-trigger" onClick={() => setShowLogin(true)} aria-haspopup="dialog">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
-        </svg>
-        <span>تسجيل الدخول</span>
-      </button>
-
-      <main className="landing-hero">
-        <div className="logo-wrap">
-          <Image
-            src="/images/logo.png"
-            alt="شعار المركز الثقافي الدعوي في مضايا"
-            width={300}
-            height={300}
-            className="landing-logo"
-            priority
-          />
+      <section id="about" className="lx-section lx-about" data-reveal>
+        <div className="lx-kicker"><i />نبذة عن المركز</div>
+        <p className="lx-about-big">
+          تأسس المركز عام ٢٠٢٥ في بلدة مضايا بريف دمشق، بعد ترميم مبناه وإعادة تأهيله، ليتحول من مقرٍّ لنشر عقائد حزب البعث إلى <em>منارةٍ للعلم والهدى</em>، وذلك بإشراف{" "}
+          <a href="https://alabdah.com/about" target="_blank" rel="noopener noreferrer">د. محمد العبده</a>.
+        </p>
+        <div className="lx-about-cols">
+          <p>يحتضن المركز حلقات تحفيظ القرآن الكريم وتدارسه، ويقيم الدورات العلمية، ويفتح أبوابه للشباب بأنشطة ثقافية وتربوية هادفة يجدون فيها بغيتهم.</p>
+          <p className="lx-dua">نسأل الله أن يبارك في هذا المركز وأن يوفقه للاستمرار وأداء رسالته، ولا تنسونا من صالح دعائكم.</p>
         </div>
-        <h1 className="landing-title">المركز الثقافي الدعوي في مضايا</h1>
-        <div className="brand-divider" />
-        <section className="landing-about">
-          <span className="corner tl" aria-hidden="true" />
-          <span className="corner tr" aria-hidden="true" />
-          <span className="corner bl" aria-hidden="true" />
-          <span className="corner br" aria-hidden="true" />
-          <h2>نبذة عن المركز</h2>
-          <div className="ornament" aria-hidden="true">
-            <i />
-            <span>✦</span>
-            <i />
-          </div>
-          <p>
-            تأسس المركز الثقافي الدعوي في مضايا عام 2025 في بلدة مضايا بريف دمشق، بعد ترميم مبناه وإعادة تأهيله، ليتحول من مقرٍّ لنشر عقائد حزب البعث إلى منارةٍ للعلم والهدى، وذلك بإشراف{" "}
-            <a href="https://alabdah.com/about" target="_blank" rel="noopener noreferrer">
-              د. محمد العبده
-            </a>
-            .
-          </p>
-          <p>
-            يحتضن المركز حلقات تحفيظ القرآن الكريم وتدارسه، ويقيم الدورات العلمية، ويفتح أبوابه للشباب بأنشطة ثقافية وتربوية هادفة يجدون فيها بغيتهم.
-          </p>
-          <p>نسأل الله أن يبارك في هذا المركز وأن يوفقه للاستمرار وأداء رسالته، ولا تنسونا من صالح دعائكم.</p>
-        </section>
+      </section>
 
-        <div className="landing-social" role="navigation" aria-label="روابط التواصل">
-          <h3>تابعونا</h3>
-          <ul>
+      <section id="journey" className="lx-journey">
+        <div className="lx-section lx-head" data-reveal>
+          <div className="lx-kicker"><i />من أول يوم إلى الختمة</div>
+          <h2>رحلة <span className="lx-gold">الحافظ</span></h2>
+        </div>
+        <ol className="lx-track">
+          {JOURNEY.map(([t, d], i) => (
+            <li key={t} data-reveal style={{ transitionDelay: `${i * 70}ms` }}>
+              <span className="lx-num">{(i + 1).toLocaleString("ar-EG")}</span>
+              <h3>{t}</h3>
+              <p>{d}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <Features />
+
+      <section className="lx-section lx-map" data-reveal>
+        <div>
+          <div className="lx-kicker"><i />خريطة الحفظ</div>
+          <h2>وين وصل ابنك؟<br /><span className="lx-gold">بنظرة وحدة.</span></h2>
+          <p className="lx-muted">كل جزء يحفظه الطالب يضيء على خريطته. وليّ الأمر يتابعها من رابطه الخاص، والمعلّم يعرف من يحتاج مراجعة.</p>
+        </div>
+        <div className="lx-juz" aria-label="مثال توضيحي لخريطة الحفظ">
+          {Array.from({ length: 30 }, (_, i) => (
+            <span key={i} className={i < 19 ? "on" : i === 19 ? "cur" : ""} style={{ transitionDelay: `${i * 45}ms` }}>
+              {(i + 1).toLocaleString("ar-EG")}
+            </span>
+          ))}
+          <small>مثال توضيحي</small>
+        </div>
+      </section>
+
+      <section id="join" className="lx-section" data-reveal>
+        <div className="lx-join">
+          <p className="lx-ayah">﴿وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا﴾</p>
+          <h2>ابدأ رحلة الحفظ <span className="lx-gold">اليوم</span></h2>
+          <p className="lx-muted">التسجيل مفتوح للبنين والبنات. املأ الطلب وتتواصل معك إدارة المركز.</p>
+          <Link href="/register" className="lx-btn">
+            <span>سجّل الآن</span>
+            <i aria-hidden="true">←</i>
+          </Link>
+          <div className="lx-social" role="navigation" aria-label="روابط التواصل">
             {SOCIAL_LINKS.map(({ href, label, Icon }) => (
-              <li key={href}>
-                <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} title={label}>
-                  <Icon />
-                </a>
-              </li>
+              <a key={href} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} title={label}>
+                <Icon />
+              </a>
             ))}
-          </ul>
+          </div>
         </div>
-      </main>
+      </section>
+
+      <footer className="lx-footer">
+        <div className="lx-footer-row">
+          <span>المركز الثقافي الدعوي في مضايا · ريف دمشق</span>
+          <a href="https://github.com/oz819/madaya" target="_blank" rel="noopener noreferrer" aria-label="الكود المصدري على GitHub">
+            <GitHubIcon /> GitHub
+          </a>
+        </div>
+        <div className="lx-giant" aria-hidden="true">مضايا</div>
+      </footer>
 
       {showLogin && (
         <div className="login-overlay" onClick={() => setShowLogin(false)}>
@@ -252,10 +329,6 @@ export default function LoginPage() {
         </div>
       )}
 
-      <a className="github-link" href="https://github.com/oz819/madaya" target="_blank" rel="noopener noreferrer" aria-label="الكود المصدري على GitHub">
-        <GitHubIcon />
-        <span>GitHub</span>
-      </a>
     </div>
   );
 }

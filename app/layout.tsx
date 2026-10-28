@@ -1,6 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import { IBM_Plex_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import ServiceWorker from "@/components/ServiceWorker";
+
+// Body text font for the whole app (exposed as --font-body, see the 2026 theme in globals.css).
+const plex = IBM_Plex_Sans_Arabic({ subsets: ["arabic"], weight: ["400", "500", "700"], variable: "--font-body", display: "swap" });
 
 export const metadata: Metadata = {
   title: "منظومة متابعة حلقات القرآن",
@@ -11,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#176b52",
+  themeColor: "#04140f",
   width: "device-width",
   initialScale: 1,
 };
@@ -19,7 +23,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ar" dir="rtl">
-      <body>
+      <body className={plex.variable}>
         {children}
         <ServiceWorker />
       </body>
