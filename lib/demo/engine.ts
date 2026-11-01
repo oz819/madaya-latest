@@ -12,7 +12,9 @@ import { DEMO_CODE, DEMO_PASSWORD, seedSql } from "@/lib/demo/seed";
 type Json = any;
 export const DEMO_SERVICE_KEY = "demo-service-key";
 
-const g = globalThis as unknown as { __demo?: Promise<PGlite>; __demoLock?: Promise<unknown> };
+type Store = { getMetadata: (k: string) => Promise<any>; get: (k: string, o: { type: "blob" }) => Promise<Blob | null>; set: (k: string, v: Blob, o: { metadata: Record<string, unknown> }) => Promise<unknown> };
+type State = { db: PGlite; version: number };
+const g = globalThis as unknown as { __demo?: State; __demoLock?: Promise<unknown>; __demoStore?: Store | null };
 
 async function boot(): Promise<PGlite> {
   // The SQL files are listed in next.config (outputFileTracingIncludes), so don't trace the project.
@@ -29,11 +31,54 @@ async function boot(): Promise<PGlite> {
   await db.exec(`create table if not exists auth.demo_passwords (user_id uuid primary key references auth.users(id) on delete cascade, password text not null)`);
   return db;
 }
-const database = () =>
-  (g.__demo ||= boot().catch((e) => {
-    g.__demo = undefined;
-    throw e;
-  }));
+// On Netlify the site runs on several server instances at once, each with its own memory. So the
+// database is snapshotted to Netlify Blobs after every change, and an instance that is behind
+// loads the latest snapshot before answering. Locally (no Blobs) it simply stays in memory.
+// Bump SNAPSHOT to start the demo over (e.g. after a schema change).
+const SNAPSHOT = "db-2026-11-01";
+
+async function blobStore(): Promise<Store | null> {
+  if (g.__demoStore !== undefined) return g.__demoStore;
+  try {
+    const { getStore } = await import("@netlify/blobs");
+    g.__demoStore = getStore({ name: "madaya-demo", consistency: "strong" }) as unknown as Store;
+    await g.__demoStore.getMetadata(SNAPSHOT);
+  } catch {
+    g.__demoStore = null;
+  }
+  return g.__demoStore;
+}
+
+/** The up-to-date database (call inside the lock). */
+async function current(): Promise<PGlite> {
+  const store = await blobStore();
+  let remote = 0;
+  if (store) remote = Number((await store.getMetadata(SNAPSHOT).catch(() => null))?.metadata?.version ?? 0);
+  const st = g.__demo;
+  if (st && st.version >= remote) return st.db;
+  if (store && remote > 0) {
+    const blob = await store.get(SNAPSHOT, { type: "blob" }).catch(() => null);
+    if (blob) {
+      const db = new PGlite({ loadDataDir: blob });
+      await db.waitReady;
+      st?.db.close().catch(() => {});
+      g.__demo = { db, version: remote };
+      return db;
+    }
+  }
+  if (!st) g.__demo = { db: await boot(), version: 0 };
+  return g.__demo!.db;
+}
+
+async function persist() {
+  const store = await blobStore();
+  const st = g.__demo;
+  if (!store || !st) return;
+  const remote = Number((await store.getMetadata(SNAPSHOT).catch(() => null))?.metadata?.version ?? 0);
+  const dump = await st.db.dumpDataDir("gzip");
+  st.version = Math.max(st.version, remote) + 1;
+  await store.set(SNAPSHOT, dump, { metadata: { version: st.version } });
+}
 
 /** One request at a time: PGlite is a single connection and each request sets its own role. */
 function locked<T>(fn: () => Promise<T>): Promise<T> {
@@ -42,23 +87,24 @@ function locked<T>(fn: () => Promise<T>): Promise<T> {
   return run;
 }
 
+let active: PGlite;
+const database = async () => active;
+
 type Who = { role: "anon" | "authenticated" | "service_role"; sub?: string; email?: string };
 
 async function asRole<T>(who: Who, fn: (db: PGlite) => Promise<T>): Promise<T> {
-  const db = await database();
-  return locked(async () => {
-    await db.exec("begin");
-    try {
-      await db.query(`select set_config('request.jwt.claims', $1, true)`, [who.sub ? JSON.stringify({ sub: who.sub, role: who.role, email: who.email }) : ""]);
-      await db.exec(`set local role ${who.role}`);
-      const out = await fn(db);
-      await db.exec("commit");
-      return out;
-    } catch (e) {
-      await db.exec("rollback").catch(() => {});
-      throw e;
-    }
-  });
+  const db = active;
+  await db.exec("begin");
+  try {
+    await db.query(`select set_config('request.jwt.claims', $1, true)`, [who.sub ? JSON.stringify({ sub: who.sub, role: who.role, email: who.email }) : ""]);
+    await db.exec(`set local role ${who.role}`);
+    const out = await fn(db);
+    await db.exec("commit");
+    return out;
+  } catch (e) {
+    await db.exec("rollback").catch(() => {});
+    throw e;
+  }
 }
 
 // ------------------------------------------------------------------ helpers
@@ -96,21 +142,21 @@ function who(req: Request): Who {
 
 async function userRow(id: string) {
   const db = await database();
-  const r = await locked(() => db.query<any>(`select id, email, raw_user_meta_data, email_confirmed_at, banned_until from auth.users where id = $1`, [id]));
+  const r = await (db.query<any>(`select id, email, raw_user_meta_data, email_confirmed_at, banned_until from auth.users where id = $1`, [id]));
   return r.rows[0] ?? null;
 }
 async function userByEmail(email: string) {
   const db = await database();
-  const r = await locked(() => db.query<any>(`select id from auth.users where lower(email) = lower($1)`, [email.trim()]));
+  const r = await (db.query<any>(`select id from auth.users where lower(email) = lower($1)`, [email.trim()]));
   return r.rows[0]?.id as string | undefined;
 }
 async function createUser(email: string, meta: Json = {}, password?: string) {
   const db = await database();
   const id = crypto.randomUUID();
-  await locked(async () => {
+  await (async () => {
     await db.query(`insert into auth.users (id, email, raw_user_meta_data) values ($1, lower($2), $3)`, [id, email.trim(), JSON.stringify(meta || {})]);
     if (password) await db.query(`insert into auth.demo_passwords values ($1, $2)`, [id, password]);
-  });
+  })();
   return id;
 }
 function authUser(u: any) {
@@ -297,7 +343,7 @@ async function auth(req: Request, path: string, url: URL, body: Json) {
       const id = await userByEmail(body.email || "");
       if (!id) return err("invalid_credentials", "Invalid login credentials");
       const db = await database();
-      const r = await locked(() => db.query<any>(`select password from auth.demo_passwords where user_id = $1`, [id]));
+      const r = await (db.query<any>(`select password from auth.demo_passwords where user_id = $1`, [id]));
       const ok = body.password === (r.rows[0]?.password ?? DEMO_PASSWORD);
       return ok ? session(id) : err("invalid_credentials", "Invalid login credentials");
     }
@@ -312,7 +358,7 @@ async function auth(req: Request, path: string, url: URL, body: Json) {
     if (!w.sub) return err("no_authorization", "missing token", 401);
     if (req.method === "PUT" && body?.data) {
       const db = await database();
-      await locked(() => db.query(`update auth.users set raw_user_meta_data = raw_user_meta_data || $2::jsonb where id = $1`, [w.sub, JSON.stringify(body.data)]));
+      await (db.query(`update auth.users set raw_user_meta_data = raw_user_meta_data || $2::jsonb where id = $1`, [w.sub, JSON.stringify(body.data)]));
     }
     const u = await userRow(w.sub);
     return u ? json(authUser(u)) : err("user_not_found", "User not found", 404);
@@ -335,19 +381,32 @@ async function auth(req: Request, path: string, url: URL, body: Json) {
       return u ? json(authUser(u)) : err("user_not_found", "User not found", 404);
     }
     if (req.method === "PUT" && id) {
-      await locked(async () => {
+      await (async () => {
         if (body.email) await db.query(`update auth.users set email = lower($2) where id = $1`, [id, body.email]);
         if (body.password) await db.query(`insert into auth.demo_passwords values ($1, $2) on conflict (user_id) do update set password = excluded.password`, [id, body.password]);
-      });
+      })();
       return json(authUser(await userRow(id)));
     }
     if (req.method === "DELETE" && id) {
-      await locked(() => db.query(`delete from auth.users where id = $1`, [id]));
+      await (db.query(`delete from auth.users where id = $1`, [id]));
       return json({});
     }
     return json({ users: [], aud: "authenticated" });
   }
   return err("not_found", "not found", 404);
+}
+
+const READ_ONLY_RPC = new Set(["my_context", "public_center", "invite_info", "super_centers", "admin_trash", "report_data",
+  "sync_latest_quran_entries", "sync_latest_arabic_entries", "guardian_view", "tilawah_percent", "ayahs_before"]);
+
+function changes(req: Request, path: string, body: Json): boolean {
+  if (req.method === "GET" || req.method === "HEAD") return false;
+  const rpcName = path.match(/^\/rest\/v1\/rpc\/(\w+)/)?.[1];
+  if (rpcName) return !READ_ONLY_RPC.has(rpcName);
+  if (path.startsWith("/rest/v1/")) return true;
+  if (path === "/auth/v1/signup" || path.startsWith("/auth/v1/admin/")) return true;
+  if (path === "/auth/v1/otp") return !!body?.create_user;
+  return path === "/auth/v1/user" && req.method === "PUT";
 }
 
 export async function handleDemo(req: Request, path: string): Promise<Response> {
@@ -358,12 +417,24 @@ export async function handleDemo(req: Request, path: string): Promise<Response> 
   try {
     body = text ? JSON.parse(text) : {};
   } catch {}
-  try {
-    if (path.startsWith("/auth/v1/")) return await auth(req, path, url, body);
-    const m = path.match(/^\/rest\/v1\/(rpc\/)?([a-z_][a-z0-9_]*)$/);
-    if (!m) return json({ message: "not found" }, 404);
-    return m[1] ? await rpc(req, m[2], body) : await rest(req, m[2], url, body);
-  } catch (e) {
-    return pgError(e);
-  }
+  return locked(async () => {
+    try {
+      active = await current();
+    } catch (e) {
+      g.__demo = undefined;
+      return pgError(e);
+    }
+    let res: Response;
+    try {
+      if (path.startsWith("/auth/v1/")) res = await auth(req, path, url, body);
+      else {
+        const m = path.match(/^\/rest\/v1\/(rpc\/)?([a-z_][a-z0-9_]*)$/);
+        res = !m ? json({ message: "not found" }, 404) : m[1] ? await rpc(req, m[2], body) : await rest(req, m[2], url, body);
+      }
+    } catch (e) {
+      res = pgError(e);
+    }
+    if (res.status < 400 && changes(req, path, body)) await persist().catch((e) => console.error("demo snapshot:", e));
+    return res;
+  });
 }
