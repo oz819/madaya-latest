@@ -17,6 +17,7 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.3.16",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
