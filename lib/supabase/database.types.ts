@@ -17,8 +17,216 @@ export type Database = {
   }
   public: {
     Tables: {
+      push_subscriptions: {
+        Row: { id: string; user_id: string; center_id: string; endpoint: string; p256dh: string; auth: string; user_agent: string | null; created_at: string }
+        Insert: { id?: string; user_id?: string; center_id?: string; endpoint: string; p256dh: string; auth: string; user_agent?: string | null; created_at?: string }
+        Update: { id?: string; user_id?: string; center_id?: string; endpoint?: string; p256dh?: string; auth?: string; user_agent?: string | null; created_at?: string }
+        Relationships: []
+      }
+      platform_admins: {
+        Row: { user_id: string; created_at: string }
+        Insert: { user_id: string; created_at?: string }
+        Update: { user_id?: string; created_at?: string }
+        Relationships: []
+      }
+      centers: {
+        Row: {
+          id: string
+          slug: string
+          name: string
+          country: string | null
+          city: string | null
+          logo_url: string | null
+          palette: string
+          primary_color: string | null
+          about: string | null
+          extra_notes: string | null
+          contact_phone: string | null
+          contact_email: string | null
+          whatsapp: string | null
+          instagram: string | null
+          facebook: string | null
+          address: string | null
+          timezone: string
+          locale: string
+          domain: string | null
+          status: string
+          plan: string
+          trial_ends_at: string | null
+          onboarded: boolean
+          owner_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          slug: string
+          name: string
+          country?: string | null
+          city?: string | null
+          logo_url?: string | null
+          palette?: string
+          primary_color?: string | null
+          about?: string | null
+          extra_notes?: string | null
+          contact_phone?: string | null
+          contact_email?: string | null
+          whatsapp?: string | null
+          instagram?: string | null
+          facebook?: string | null
+          address?: string | null
+          timezone?: string
+          locale?: string
+          domain?: string | null
+          status?: string
+          plan?: string
+          trial_ends_at?: string | null
+          onboarded?: boolean
+          owner_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          slug?: string
+          name?: string
+          country?: string | null
+          city?: string | null
+          logo_url?: string | null
+          palette?: string
+          primary_color?: string | null
+          about?: string | null
+          extra_notes?: string | null
+          contact_phone?: string | null
+          contact_email?: string | null
+          whatsapp?: string | null
+          instagram?: string | null
+          facebook?: string | null
+          address?: string | null
+          timezone?: string
+          locale?: string
+          domain?: string | null
+          status?: string
+          plan?: string
+          trial_ends_at?: string | null
+          onboarded?: boolean
+          owner_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      memberships: {
+        Row: {
+          user_id: string
+          center_id: string
+          name: string
+          role: string
+          is_owner: boolean
+          active: boolean
+          default_filter: string | null
+          created_at: string
+          updated_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+        }
+        Insert: {
+          user_id: string
+          center_id: string
+          name: string
+          role: string
+          is_owner?: boolean
+          active?: boolean
+          default_filter?: string | null
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+        }
+        Update: {
+          user_id?: string
+          center_id?: string
+          name?: string
+          role?: string
+          is_owner?: boolean
+          active?: boolean
+          default_filter?: string | null
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+        }
+        Relationships: []
+      }
+      center_invites: {
+        Row: {
+          id: string
+          center_id: string
+          email: string
+          name: string | null
+          role: string
+          token: string
+          created_by: string | null
+          created_at: string
+          expires_at: string
+          accepted_at: string | null
+          accepted_by: string | null
+          revoked_at: string | null
+        }
+        Insert: {
+          id?: string
+          center_id?: string
+          email: string
+          name?: string | null
+          role?: string
+          token?: string
+          created_by?: string | null
+          created_at?: string
+          expires_at?: string
+          accepted_at?: string | null
+          accepted_by?: string | null
+          revoked_at?: string | null
+        }
+        Update: {
+          id?: string
+          center_id?: string
+          email?: string
+          name?: string | null
+          role?: string
+          token?: string
+          created_by?: string | null
+          created_at?: string
+          expires_at?: string
+          accepted_at?: string | null
+          accepted_by?: string | null
+          revoked_at?: string | null
+        }
+        Relationships: []
+      }
+      app_users: {
+        Row: {
+          id: string
+          name: string
+          created_at: string
+          current_center_id: string | null
+        }
+        Insert: {
+          id: string
+          name: string
+          created_at?: string
+          current_center_id?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          created_at?: string
+          current_center_id?: string | null
+        }
+        Relationships: []
+      }
       activities: {
         Row: {
+          center_id: string
           activity_date: string
           circle_id: string | null
           created_at: string
@@ -33,6 +241,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          center_id?: string
           activity_date: string
           circle_id?: string | null
           created_at?: string
@@ -47,6 +256,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          center_id?: string
           activity_date?: string
           circle_id?: string | null
           created_at?: string
@@ -79,6 +289,7 @@ export type Database = {
       }
       audit_log: {
         Row: {
+          center_id: string
           action: string
           actor: string | null
           at: string
@@ -89,6 +300,7 @@ export type Database = {
           table_name: string
         }
         Insert: {
+          center_id?: string
           action: string
           actor?: string | null
           at?: string
@@ -99,6 +311,7 @@ export type Database = {
           table_name: string
         }
         Update: {
+          center_id?: string
           action?: string
           actor?: string | null
           at?: string
@@ -112,6 +325,7 @@ export type Database = {
       }
       ranking_settings: {
         Row: {
+          center_id: string
           absence_message: string | null
           absence_threshold: number
           course_start: string | null
@@ -125,6 +339,7 @@ export type Database = {
           weights: Json
         }
         Insert: {
+          center_id?: string
           absence_message?: string | null
           absence_threshold?: number
           course_start?: string | null
@@ -138,6 +353,7 @@ export type Database = {
           weights?: Json
         }
         Update: {
+          center_id?: string
           absence_message?: string | null
           absence_threshold?: number
           course_start?: string | null
@@ -154,6 +370,7 @@ export type Database = {
       }
       arabic_books: {
         Row: {
+          center_id: string
           active: boolean
           created_at: string
           deleted_at: string | null
@@ -166,6 +383,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          center_id?: string
           active?: boolean
           created_at?: string
           deleted_at?: string | null
@@ -178,6 +396,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          center_id?: string
           active?: boolean
           created_at?: string
           deleted_at?: string | null
@@ -193,6 +412,7 @@ export type Database = {
       }
       arabic_entries: {
         Row: {
+          center_id: string
           book_id: string
           created_at: string
           deleted_at: string | null
@@ -210,6 +430,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          center_id?: string
           book_id: string
           created_at?: string
           deleted_at?: string | null
@@ -227,6 +448,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          center_id?: string
           book_id?: string
           created_at?: string
           deleted_at?: string | null
@@ -276,6 +498,7 @@ export type Database = {
       }
       attendance: {
         Row: {
+          center_id: string
           att_date: string
           created_at: string
           deleted_at: string | null
@@ -287,6 +510,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          center_id?: string
           att_date: string
           created_at?: string
           deleted_at?: string | null
@@ -298,6 +522,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          center_id?: string
           att_date?: string
           created_at?: string
           deleted_at?: string | null
@@ -334,6 +559,7 @@ export type Database = {
       }
       circle_lessons: {
         Row: {
+          center_id: string
           circle_id: string
           created_at: string
           deleted_at: string | null
@@ -346,6 +572,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          center_id?: string
           circle_id: string
           created_at?: string
           deleted_at?: string | null
@@ -358,6 +585,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          center_id?: string
           circle_id?: string
           created_at?: string
           deleted_at?: string | null
@@ -388,6 +616,7 @@ export type Database = {
       }
       circles: {
         Row: {
+          center_id: string
           active: boolean
           created_at: string
           deleted_at: string | null
@@ -400,6 +629,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          center_id?: string
           active?: boolean
           created_at?: string
           deleted_at?: string | null
@@ -412,6 +642,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          center_id?: string
           active?: boolean
           created_at?: string
           deleted_at?: string | null
@@ -842,6 +1073,7 @@ export type Database = {
       }
       edu_notes: {
         Row: {
+          center_id: string
           area: string
           created_at: string
           deleted_at: string | null
@@ -858,6 +1090,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          center_id?: string
           area: string
           created_at?: string
           deleted_at?: string | null
@@ -874,6 +1107,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          center_id?: string
           area?: string
           created_at?: string
           deleted_at?: string | null
@@ -915,6 +1149,7 @@ export type Database = {
       }
       exams: {
         Row: {
+          center_id: string
           created_at: string
           deleted_at: string | null
           deleted_by: string | null
@@ -934,6 +1169,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          center_id?: string
           created_at?: string
           deleted_at?: string | null
           deleted_by?: string | null
@@ -953,6 +1189,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          center_id?: string
           created_at?: string
           deleted_at?: string | null
           deleted_by?: string | null
@@ -975,6 +1212,7 @@ export type Database = {
       }
       guardian_links: {
         Row: {
+          center_id: string
           created_at: string
           last_opened_at: string | null
           open_count: number
@@ -983,6 +1221,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          center_id?: string
           created_at?: string
           last_opened_at?: string | null
           open_count?: number
@@ -991,6 +1230,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          center_id?: string
           created_at?: string
           last_opened_at?: string | null
           open_count?: number
@@ -1002,6 +1242,9 @@ export type Database = {
       }
       profiles: {
         Row: {
+          center_id: string
+          is_owner: boolean
+          updated_at: string
           active: boolean
           created_at: string
           default_filter: string | null
@@ -1035,6 +1278,7 @@ export type Database = {
       }
       quran_entries: {
         Row: {
+          center_id: string
           created_at: string
           deleted_at: string | null
           deleted_by: string | null
@@ -1055,6 +1299,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          center_id?: string
           created_at?: string
           deleted_at?: string | null
           deleted_by?: string | null
@@ -1075,6 +1320,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          center_id?: string
           created_at?: string
           deleted_at?: string | null
           deleted_by?: string | null
@@ -1159,6 +1405,7 @@ export type Database = {
       }
       student_arabic_enrollments: {
         Row: {
+          center_id: string
           book_id: string
           created_at: string
           deleted_at: string | null
@@ -1171,6 +1418,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          center_id?: string
           book_id: string
           created_at?: string
           deleted_at?: string | null
@@ -1183,6 +1431,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          center_id?: string
           book_id?: string
           created_at?: string
           deleted_at?: string | null
@@ -1220,6 +1469,7 @@ export type Database = {
       }
       registration_requests: {
         Row: {
+          center_id: string
           age: number | null
           created_at: string
           decided_at: string | null
@@ -1234,6 +1484,7 @@ export type Database = {
           student_name: string
         }
         Insert: {
+          center_id?: string
           age?: number | null
           created_at?: string
           decided_at?: string | null
@@ -1248,6 +1499,7 @@ export type Database = {
           student_name: string
         }
         Update: {
+          center_id?: string
           age?: number | null
           created_at?: string
           decided_at?: string | null
@@ -1265,6 +1517,7 @@ export type Database = {
       }
       report_sends: {
         Row: {
+          center_id: string
           created_at: string
           deleted_at: string | null
           deleted_by: string | null
@@ -1277,6 +1530,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          center_id?: string
           created_at?: string
           deleted_at?: string | null
           deleted_by?: string | null
@@ -1289,6 +1543,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          center_id?: string
           created_at?: string
           deleted_at?: string | null
           deleted_by?: string | null
@@ -1304,6 +1559,7 @@ export type Database = {
       }
       student_transfers: {
         Row: {
+          center_id: string
           created_at: string
           created_by: string | null
           deleted_at: string | null
@@ -1315,6 +1571,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          center_id?: string
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -1326,6 +1583,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          center_id?: string
           created_at?: string
           created_by?: string | null
           deleted_at?: string | null
@@ -1340,6 +1598,7 @@ export type Database = {
       }
       students: {
         Row: {
+          center_id: string
           active: boolean
           circle_id: string
           created_at: string
@@ -1355,6 +1614,7 @@ export type Database = {
           weekly_goal_ayahs: number | null
         }
         Insert: {
+          center_id?: string
           active?: boolean
           circle_id: string
           created_at?: string
@@ -1370,6 +1630,7 @@ export type Database = {
           weekly_goal_ayahs?: number | null
         }
         Update: {
+          center_id?: string
           active?: boolean
           circle_id?: string
           created_at?: string
@@ -1396,6 +1657,7 @@ export type Database = {
       }
       talqeen_sessions: {
         Row: {
+          center_id: string
           circle_id: string
           created_at: string
           deleted_at: string | null
@@ -1413,6 +1675,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          center_id?: string
           circle_id: string
           created_at?: string
           deleted_at?: string | null
@@ -1430,6 +1693,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          center_id?: string
           circle_id?: string
           created_at?: string
           deleted_at?: string | null
@@ -1479,16 +1743,19 @@ export type Database = {
       }
       user_settings: {
         Row: {
+          center_id: string
           filter: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          center_id?: string
           filter?: string | null
           updated_at?: string
           user_id?: string
         }
         Update: {
+          center_id?: string
           filter?: string | null
           updated_at?: string
           user_id?: string
@@ -1585,6 +1852,18 @@ export type Database = {
       }
     }
     Functions: {
+      my_context: { Args: never; Returns: Json }
+      service_user_id: { Args: { p_email: string }; Returns: string }
+      switch_center: { Args: { p_center_id: string }; Returns: undefined }
+      public_center: { Args: { p_slug?: string | null; p_domain?: string | null }; Returns: Json }
+      create_center: {
+        Args: { p_name: string; p_slug: string; p_country: string; p_city: string; p_owner_name: string; p_about?: string | null; p_phone?: string | null; p_palette?: string | null }
+        Returns: Json
+      }
+      invite_info: { Args: { p_token: string }; Returns: Json }
+      accept_invite: { Args: { p_token: string; p_name?: string | null }; Returns: Json }
+      super_centers: { Args: never; Returns: Json }
+      super_set_center: { Args: { p_id: string; p_status?: string | null; p_plan?: string | null }; Returns: undefined }
       admin_accept_registration: {
         Args: { p_circle_id: string; p_id: string }
         Returns: string
@@ -1638,6 +1917,7 @@ export type Database = {
           p_section: string
           p_student_name: string
           p_trap?: string | null
+          p_center?: string | null
         }
         Returns: boolean
       }

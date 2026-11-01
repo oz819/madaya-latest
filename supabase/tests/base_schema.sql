@@ -239,6 +239,65 @@ create function public.sync_latest_quran_entries() returns setof public.quran_en
   order by student_id, track, entry_date desc, created_at desc;
 $$;
 
+create function public.sync_latest_arabic_entries() returns setof public.arabic_entries language sql stable set search_path = public as $$
+  select distinct on (student_id, book_id) * from arabic_entries where deleted_at is null
+  order by student_id, book_id, to_page desc, entry_date desc;
+$$;
+create function public.tilawah_percent(p_surah_no integer, p_ayah integer) returns integer language sql stable set search_path = public as $$
+  select round((public.ayahs_before(p_surah_no) + coalesce(p_ayah,0))::numeric / (select sum(ayah_count) from quran_surahs) * 100)::int;
+$$;
+create function public.report_data(p_from date, p_to date, p_circle_id uuid default null, p_student_id uuid default null) returns jsonb
+language sql stable set search_path = public as $$
+  with st as (select id, circle_id from students where (p_student_id is null or id = p_student_id) and (p_circle_id is null or circle_id = p_circle_id))
+  select jsonb_build_object(
+    'quran', coalesce((select jsonb_agg(to_jsonb(q) order by q.entry_date, q.created_at) from quran_entries q
+                       where q.student_id in (select id from st) and q.deleted_at is null and q.entry_date between p_from and p_to), '[]'::jsonb),
+    'arabic', coalesce((select jsonb_agg(to_jsonb(a) order by a.entry_date, a.created_at) from arabic_entries a
+                        where a.student_id in (select id from st) and a.deleted_at is null and a.entry_date between p_from and p_to), '[]'::jsonb),
+    'tarbiya', coalesce((select jsonb_agg(jsonb_build_object('id', n.id, 'student_id', n.student_id, 'record_date', n.record_date, 'area', n.area,
+                          'note', n.note, 'quality', n.quality, 'teacher_id', n.teacher_id) order by n.record_date, n.created_at)
+                         from edu_notes n where n.student_id in (select id from st) and n.deleted_at is null and n.record_date between p_from and p_to), '[]'::jsonb),
+    'attendance', coalesce((select jsonb_agg(to_jsonb(t) order by t.att_date) from attendance t
+                            where t.student_id in (select id from st) and t.deleted_at is null and t.att_date between p_from and p_to), '[]'::jsonb),
+    'lessons', coalesce((select jsonb_agg(to_jsonb(l) order by l.lesson_date) from circle_lessons l
+                         where l.circle_id in (select circle_id from st) and l.deleted_at is null and l.lesson_date between p_from and p_to), '[]'::jsonb),
+    'activities', coalesce((select jsonb_agg(to_jsonb(v) order by v.activity_date) from activities v
+                            where (v.circle_id is null or v.circle_id in (select circle_id from st)) and v.deleted_at is null
+                              and v.activity_date between p_from and p_to), '[]'::jsonb),
+    'exams', coalesce((select jsonb_agg(to_jsonb(x) order by x.exam_date) from exams x
+                       where x.student_id in (select id from st) and x.deleted_at is null and x.exam_date between p_from and p_to), '[]'::jsonb));
+$$;
+create function public.save_talqeen_session(p_session jsonb, p_entries jsonb) returns void language plpgsql set search_path = public, private as $$
+declare
+  v_id uuid := (p_session ->> 'id')::uuid;
+  v_date date := coalesce((p_session ->> 'session_date')::date, current_date);
+  v_edited timestamptz := coalesce((p_session ->> 'edited_at')::timestamptz, now());
+  v_deleted timestamptz := (p_session ->> 'deleted_at')::timestamptz;
+begin
+  if not private.is_staff() then raise exception 'غير مصرّح'; end if;
+  insert into talqeen_sessions as t (id, circle_id, session_date, from_surah_no, from_ayah, to_surah_no, to_ayah, notes, edited_at, deleted_at)
+  values (v_id, (p_session ->> 'circle_id')::uuid, v_date, (p_session ->> 'from_surah_no')::int, (p_session ->> 'from_ayah')::int,
+          (p_session ->> 'to_surah_no')::int, (p_session ->> 'to_ayah')::int, nullif(p_session ->> 'notes', ''), v_edited, v_deleted)
+  on conflict (id) do update set circle_id = excluded.circle_id, session_date = excluded.session_date, from_surah_no = excluded.from_surah_no,
+    from_ayah = excluded.from_ayah, to_surah_no = excluded.to_surah_no, to_ayah = excluded.to_ayah, notes = excluded.notes,
+    edited_at = excluded.edited_at, deleted_at = excluded.deleted_at;
+  if not exists (select 1 from talqeen_sessions where id = v_id and edited_at = v_edited) then return; end if;
+  if v_deleted is not null then p_entries := '[]'::jsonb; end if;
+  insert into quran_entries as q (id, student_id, entry_date, track, from_surah_no, from_ayah, to_surah_no, to_ayah, quality, notes, talqeen_session_id, edited_at, deleted_at)
+  select (e ->> 'id')::uuid, (e ->> 'student_id')::uuid, v_date, 'TALQEEN', t.from_surah_no, t.from_ayah, t.to_surah_no, t.to_ayah,
+         nullif(e ->> 'quality', ''), nullif(e ->> 'notes', ''), v_id, v_edited, null
+  from jsonb_array_elements(p_entries) e cross join talqeen_sessions t where t.id = v_id
+  on conflict (id) do update set student_id = excluded.student_id, entry_date = excluded.entry_date, from_surah_no = excluded.from_surah_no,
+    from_ayah = excluded.from_ayah, to_surah_no = excluded.to_surah_no, to_ayah = excluded.to_ayah, quality = excluded.quality,
+    notes = excluded.notes, edited_at = excluded.edited_at, deleted_at = null;
+  update quran_entries set deleted_at = now(), edited_at = v_edited
+  where talqeen_session_id = v_id and deleted_at is null and id not in (select (e ->> 'id')::uuid from jsonb_array_elements(p_entries) e);
+  insert into attendance as a (student_id, att_date, status, edited_at)
+  select (e ->> 'student_id')::uuid, v_date, 'PRESENT', v_edited from jsonb_array_elements(p_entries) e
+  on conflict (student_id, att_date) do update set status = 'PRESENT', deleted_at = null, edited_at = greatest(a.edited_at, excluded.edited_at)
+  where a.status = 'ABSENT' or a.deleted_at is not null;
+end $$;
+
 -- ---------------------------------------------------------------- triggers (as in production)
 create trigger trg_profiles_deleted_by before insert or update on public.profiles for each row execute function private.stamp_deleted_by();
 create trigger trg_audit after insert or delete or update on public.profiles for each row execute function private.audit_row('id');

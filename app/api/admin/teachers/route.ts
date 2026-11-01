@@ -1,78 +1,76 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/requireAdmin";
+import { NO_SERVICE_KEY, membershipIn, requireAdmin } from "@/lib/requireAdmin";
 import { createAdminClient } from "@/utils/supabase/admin";
 
-// Creating a teacher account requires the Supabase Auth Admin API (service_role), which the
-// browser can never call directly — this is the one legitimate reason this app has a
-// traditional server route instead of a direct client -> Postgres call.
-// Login emails live in auth.users, which only the Auth Admin API can read: the admin screen uses
-// this to show and pre-fill each account's email.
+// Staff accounts of the admin's centre. Creating a login needs the Supabase Auth Admin API
+// (service_role), which the browser can never call. Everything here is limited to the admin's
+// own centre: the service key bypasses RLS, so each query names the centre.
+
+function adminClientOrNull() {
+  try {
+    return createAdminClient();
+  } catch {
+    return null;
+  }
+}
+
+// Login emails live in auth.users: return them for this centre's members only.
 export async function GET() {
   const admin = await requireAdmin();
   if (!admin.ok) return NextResponse.json({ error: admin.error }, { status: admin.status });
+  const sb = adminClientOrNull();
+  if (!sb) return NextResponse.json({ error: NO_SERVICE_KEY }, { status: 500 });
 
-  let adminClient;
-  try {
-    adminClient = createAdminClient();
-  } catch {
-    return NextResponse.json(
-      { error: "SUPABASE_SERVICE_ROLE_KEY غير مضبوط على الخادم — راجع .env.local.example" },
-      { status: 500 }
-    );
-  }
-
+  const { data: members, error } = await sb.from("memberships").select("user_id").eq("center_id", admin.centerId);
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   const emails: Record<string, string> = {};
-  for (let page = 1; ; page++) {
-    const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage: 1000 });
-    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-    for (const u of data.users) if (u.email) emails[u.id] = u.email;
-    if (data.users.length < 1000) break;
-  }
+  await Promise.all(
+    (members ?? []).map(async (m) => {
+      const { data } = await sb.auth.admin.getUserById(m.user_id);
+      if (data?.user?.email) emails[m.user_id] = data.user.email;
+    })
+  );
   return NextResponse.json({ emails });
 }
 
+// Add a teacher: a new login with a password, or — when the email already has a login (e.g. a
+// teacher of another centre too) — just a membership in this centre, keeping their password.
 export async function POST(request: Request) {
   const admin = await requireAdmin();
   if (!admin.ok) return NextResponse.json({ error: admin.error }, { status: admin.status });
 
   const body = await request.json().catch(() => null);
   const name = typeof body?.name === "string" ? body.name.trim() : "";
-  const email = typeof body?.email === "string" ? body.email.trim() : "";
+  const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
   const password = typeof body?.password === "string" ? body.password : "";
-
-  if (!name || !email || password.length < 8) {
-    return NextResponse.json({ error: "أكمل بيانات المحفظ (كلمة المرور 8 أحرف على الأقل)" }, { status: 400 });
+  if (!name || !email || name.length > 100) {
+    return NextResponse.json({ error: "أكمل بيانات المحفظ" }, { status: 400 });
   }
 
-  let adminClient;
-  try {
-    adminClient = createAdminClient();
-  } catch {
-    return NextResponse.json(
-      { error: "SUPABASE_SERVICE_ROLE_KEY غير مضبوط على الخادم — راجع .env.local.example" },
-      { status: 500 }
-    );
+  const sb = adminClientOrNull();
+  if (!sb) return NextResponse.json({ error: NO_SERVICE_KEY }, { status: 500 });
+
+  const { data: existingId } = await sb.rpc("service_user_id", { p_email: email });
+  let userId = existingId as string | null;
+  let created = false;
+  if (!userId) {
+    if (password.length < 8) return NextResponse.json({ error: "كلمة المرور 8 أحرف على الأقل" }, { status: 400 });
+    const { data, error } = await sb.auth.admin.createUser({ email, password, email_confirm: true });
+    if (error || !data.user) return NextResponse.json({ error: error?.message || "تعذّر إنشاء الحساب" }, { status: 400 });
+    userId = data.user.id;
+    created = true;
+  } else if (await membershipIn(sb, userId, admin.centerId)) {
+    return NextResponse.json({ error: "هذا البريد عضو في المركز من قبل" }, { status: 400 });
   }
 
-  const { data: created, error: createError } = await adminClient.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-  });
-  if (createError || !created.user) {
-    return NextResponse.json({ error: createError?.message || "تعذّر إنشاء الحساب" }, { status: 400 });
+  const { error: userErr } = await sb.from("app_users").upsert({ id: userId, name }, { onConflict: "id", ignoreDuplicates: true });
+  const { error: memErr } = userErr
+    ? { error: userErr }
+    : await sb.from("memberships").insert({ user_id: userId, center_id: admin.centerId, name, role: "TEACHER", active: true });
+  if (memErr) {
+    // Don't leave a half-made login behind.
+    if (created) await sb.auth.admin.deleteUser(userId);
+    return NextResponse.json({ error: memErr.message }, { status: 400 });
   }
-
-  // upsert, not insert: harmless if a profile row already exists for this id (e.g. a re-run
-  // after a partial failure), and it always ends up as an active TEACHER.
-  const { error: profileError } = await adminClient
-    .from("profiles")
-    .upsert({ id: created.user.id, name, role: "TEACHER", active: true }, { onConflict: "id" });
-  if (profileError) {
-    // Roll back the orphaned auth user so a failed profile insert doesn't leave a half-created account.
-    await adminClient.auth.admin.deleteUser(created.user.id);
-    return NextResponse.json({ error: profileError.message }, { status: 400 });
-  }
-
-  return NextResponse.json({ id: created.user.id, name, email }, { status: 201 });
+  return NextResponse.json({ id: userId, name, email, existing: !created }, { status: 201 });
 }

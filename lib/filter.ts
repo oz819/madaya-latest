@@ -155,7 +155,7 @@ class FilterStore {
     if (!this.sb || !this.userId || !navigator.onLine) return;
     this.sb
       .from("user_settings")
-      .upsert({ user_id: this.userId, filter: saved.value, updated_at: saved.at }, { onConflict: "user_id" })
+      .upsert({ user_id: this.userId, filter: saved.value, updated_at: saved.at }, { onConflict: "user_id,center_id" })
       .then(
         () => {},
         () => {}

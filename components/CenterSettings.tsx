@@ -80,13 +80,13 @@ export default function CenterSettings() {
 // لوحة الشرف العامة: off by default. When on, /honor shows the week's top students (first name and
 // the family name's initial) and new juz' certificates, for the parents' group or the centre's page.
 export function HonorSettings() {
-  const { supabase, showToast } = useApp();
+  const { supabase, showToast, center } = useApp();
   const settings = useRankingSettings(supabase);
   const [error, setError] = useState("");
   // Shown at once while saving; back to the saved value if it fails.
   const [pending, setPending] = useState<boolean | null>(null);
   const on = pending ?? settings.honorEnabled;
-  const link = typeof location === "undefined" ? "" : `${location.origin}/honor`;
+  const link = typeof location === "undefined" ? "" : `${location.origin}/${center.slug}/honor`;
 
   async function toggle(on: boolean) {
     setPending(on);
@@ -113,7 +113,7 @@ export function HonorSettings() {
           <button type="button" className="link" onClick={() => navigator.clipboard?.writeText(link).then(() => showToast("تم نسخ الرابط"), () => {})}>
             نسخ
           </button>{" "}
-          <a href="/honor" target="_blank" rel="noreferrer">
+          <a href={`/${center.slug}/honor`} target="_blank" rel="noreferrer">
             فتح
           </a>
         </p>

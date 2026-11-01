@@ -217,6 +217,13 @@ async function main() {
   const auditB = await rows(db, OWNER_B, "select * from public.audit_log");
   ok(auditB.length > 0 && auditB.every((r) => r.center_id === B), "كل مركز له سجل تعديلاته");
 
+  console.log("إشعارات Push");
+  await as(db, ADMIN, `insert into public.push_subscriptions (endpoint, p256dh, auth) values ('https://push.example/a', 'k', 'a')`);
+  ok((await rows(db, ADMIN, "select * from public.push_subscriptions")).length === 1, "الجهاز يحفظ اشتراكه");
+  ok((await rows(db, TEACHER, "select * from public.push_subscriptions")).length === 0, "ولا يراه غيره ولو من نفس المركز");
+  ok((await rows(db, OWNER_B, "select * from public.push_subscriptions")).length === 0, "ولا مركز آخر");
+  ok(!!(await fails(db, OWNER_B, `insert into public.push_subscriptions (endpoint, p256dh, auth, user_id) values ('https://push.example/b', 'k', 'a', '${ADMIN}')`)), "لا أحد يسجّل اشتراكًا باسم غيره");
+
   console.log(`\n${passed} ناجح، ${failed} فاشل`);
   process.exit(failed ? 1 : 0);
 }

@@ -26,7 +26,7 @@ create table public.centers (
   city text check (char_length(city) <= 60),
   -- An https URL or a small inline PNG/JPEG/WebP (resized in the browser). No SVG: it can carry script.
   logo_url text check (logo_url is null or (char_length(logo_url) <= 350000
-    and logo_url ~ '^(https://[^\s"''<>]+|data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+)$')),
+    and logo_url ~ '^(https://[^\s"''<>]+|/images/[a-z0-9._-]+|data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+)$')),
   palette text not null default 'indigo' check (palette in ('indigo', 'navy', 'plum', 'slate')),
   primary_color text check (primary_color ~ '^#[0-9a-fA-F]{6}$'),
   about text check (char_length(about) <= 2000),
@@ -57,9 +57,13 @@ create function private.is_reserved_slug(p_slug text) returns boolean language s
 $$;
 alter table public.centers add constraint centers_slug_not_reserved check (not private.is_reserved_slug(slug));
 
-insert into public.centers (id, slug, name, country, city, about, domain, status, plan, onboarded, palette)
-values (private.madaya_center_id(), 'madaya', 'مركز مضايا لتحفيظ القرآن الكريم', 'سوريا', 'مضايا',
-  'مركز لتحفيظ القرآن الكريم وتعليم التلاوة والتجويد للبنين والبنات.', 'madayacentre.com', 'ACTIVE', 'PRO', true, 'indigo');
+-- Madaya's public profile: what its landing page said (now editable from the admin settings).
+insert into public.centers (id, slug, name, country, city, logo_url, about, whatsapp, instagram, facebook, address,
+                            domain, status, plan, onboarded, palette)
+values (private.madaya_center_id(), 'madaya', 'المركز الثقافي الدعوي في مضايا', 'سوريا', 'مضايا', '/images/logo.png',
+  'تأسس المركز عام ٢٠٢٥ في بلدة مضايا بريف دمشق، بإشراف د. محمد العبده. يحتضن حلقات تحفيظ القرآن الكريم وتدارسه، ويقيم الدورات العلمية، ويفتح أبوابه للشباب بأنشطة ثقافية وتربوية هادفة.',
+  '963993323763', 'https://www.instagram.com/lmrkzlthqfyldwy', 'https://www.facebook.com/share/1HjPsLvumo/', 'مضايا · ريف دمشق',
+  'madayacentre.com', 'ACTIVE', 'PRO', true, 'indigo');
 
 -- Us: the people who run the platform. They see the list of centres; they do not get into a
 -- centre's daily data unless that centre adds them as staff.
@@ -441,7 +445,7 @@ language sql stable security definer set search_path = '' as $$
   select jsonb_build_object('id', c.id, 'slug', c.slug, 'name', c.name, 'country', c.country, 'city', c.city,
     'logo_url', c.logo_url, 'palette', c.palette, 'primary_color', c.primary_color, 'about', c.about,
     'contact_phone', c.contact_phone, 'contact_email', c.contact_email, 'whatsapp', c.whatsapp,
-    'instagram', c.instagram, 'facebook', c.facebook, 'address', c.address, 'locale', c.locale,
+    'instagram', c.instagram, 'facebook', c.facebook, 'address', c.address, 'locale', c.locale, 'extra_notes', c.extra_notes,
     'honor_enabled', coalesce((select r.honor_enabled from public.ranking_settings r where r.center_id = c.id), false))
   from public.centers c
   where c.status <> 'SUSPENDED'
@@ -962,3 +966,11 @@ revoke all on function private.current_center_id(), private.is_platform_admin(),
   from public;
 grant execute on function private.current_center_id(), private.is_platform_admin(), private.madaya_center_id(),
   private.is_reserved_slug(text), private.plan_student_limit(text) to authenticated, anon, service_role;
+
+-- ============================================================== for the server only (service key)
+-- The admin "add a teacher" route: is there already a login with this email (maybe in another centre)?
+create function public.service_user_id(p_email text) returns uuid language sql stable security definer set search_path = '' as $$
+  select id from auth.users where lower(email) = lower(btrim(p_email)) limit 1
+$$;
+revoke all on function public.service_user_id(text) from public, anon, authenticated;
+grant execute on function public.service_user_id(text) to service_role;

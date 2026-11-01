@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // The public demo's in-process Postgres (lib/demo) loads its wasm and the SQL files at runtime.
+  serverExternalPackages: ["@electric-sql/pglite"],
+  outputFileTracingIncludes: {
+    "/sb/[...path]": ["./supabase/**/*.sql", "./node_modules/@electric-sql/pglite/dist/**"],
+  },
   async headers() {
     return [
       {

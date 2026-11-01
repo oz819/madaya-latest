@@ -1,19 +1,19 @@
-import Image from "next/image";
-import { Reem_Kufi } from "next/font/google";
+import { CenterMark } from "@/components/center/Geo";
+import { accentStyle, type PublicCenter } from "@/lib/center";
 
 // The frame of the public pages for families (no login): the family page, the registration form
-// and the honor board. The centre's logo and name on the app's patterned background.
+// and the honor board — with the centre's own name, logo and colours.
+type Brand = Pick<PublicCenter, "name" | "logo_url" | "palette" | "primary_color">;
 
-const reemKufi = Reem_Kufi({ subsets: ["arabic"], variable: "--font-reem-kufi", display: "swap" });
-
-export default function PublicShell({ children }: { children: React.ReactNode }) {
+export default function PublicShell({ center, children }: { center?: Brand | null; children: React.ReactNode }) {
+  const name = center?.name ?? "حلقات القرآن";
   return (
-    <div className={`app-bg ${reemKufi.variable}`}>
+    <div className="app-bg" data-palette={center?.palette ?? "indigo"} style={accentStyle(center)}>
       <main className="guardian">
         <div className="guardian-brand">
-          <Image src="/images/logo.png" alt="" width={56} height={56} />
+          <CenterMark name={name} logo={center?.logo_url} size={56} />
           <div>
-            <h1>المركز الثقافي الدعوي في مضايا</h1>
+            <h1>{name}</h1>
             <span className="muted">متابعة حلقات القرآن الكريم</span>
           </div>
         </div>

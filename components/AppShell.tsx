@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import type { Profile, Role } from "@/lib/types";
 import { Mushaf } from "@/lib/quran";
-import { PROFILE_COLUMNS, store, useStore } from "@/lib/offline/store";
+import { store, useStore } from "@/lib/offline/store";
 import { filterStore } from "@/lib/filter";
 import { getMeta, setMeta } from "@/lib/offline/idb";
 import { ACCOUNT_DELETED_MESSAGE, ACCOUNT_DISABLED_MESSAGE, NOT_REGISTERED_MESSAGE } from "@/lib/messages";
@@ -25,6 +25,9 @@ import SlidingIndicator from "@/components/SlidingIndicator";
 import InstallHint from "@/components/InstallHint";
 import FilterBar from "@/components/FilterBar";
 import Toast, { useToast } from "@/components/Toast";
+import { CenterMark } from "@/components/center/Geo";
+import PushToggle from "@/components/PushToggle";
+import { applyPalette, type MyContext } from "@/lib/center";
 
 type Page = "students" | "talqeen" | "reports" | "ranking" | "dashboard" | "manage" | "trash" | "audit";
 
@@ -72,7 +75,14 @@ function NavButton({ id, label, active, onClick }: { id: Page; label: string; ac
   );
 }
 
-type CachedProfile = { userId: string; profile: Profile };
+type CachedProfile = { userId: string; profile: Profile; centerId?: string; ctx?: MyContext };
+
+const BLOCKED_MESSAGE: Record<NonNullable<MyContext["blocked"]>, string> = {
+  NO_CENTER: NOT_REGISTERED_MESSAGE,
+  SUSPENDED: "حساب المركز موقوف حاليًا. تواصلوا مع إدارة المنصة.",
+  DELETED: ACCOUNT_DELETED_MESSAGE,
+  DISABLED: ACCOUNT_DISABLED_MESSAGE,
+};
 
 // What's on screen. Each change is a browser history entry, so the phone's back button steps
 // back inside the app (student card → list → previous tab) instead of leaving it.
@@ -83,6 +93,7 @@ export default function AppShell() {
   const router = useRouter();
   const [supabase] = useState(() => createClient());
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [ctx, setCtx] = useState<MyContext | null>(null);
   const [blockedMessage, setBlockedMessage] = useState("");
   const [view, setView] = useState<View>(HOME);
   const page = view.page;
@@ -106,19 +117,28 @@ export default function AppShell() {
       const cached = await getMeta<CachedProfile>("profile");
 
       let p: Profile | null = cached?.userId === userId ? cached.profile : null;
+      let c: MyContext | null = cached?.userId === userId ? cached.ctx ?? null : null;
       if (navigator.onLine) {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select(PROFILE_COLUMNS)
-          .eq("id", userId)
-          .maybeSingle();
-        if (!error) {
-          if (!data || data.deleted_at || !data.active || (data.role !== "ADMIN" && data.role !== "TEACHER")) {
-            setBlockedMessage(!data ? NOT_REGISTERED_MESSAGE : data.deleted_at ? ACCOUNT_DELETED_MESSAGE : ACCOUNT_DISABLED_MESSAGE);
-            await supabase.auth.signOut();
+        // Who I am in the centre I work in now (memberships), and which centres I belong to.
+        const { data, error } = await supabase.rpc("my_context");
+        if (!error && data) {
+          c = data as unknown as MyContext;
+          const m = c.membership;
+          if (!c.center || !m) {
+            // Just signed up for a new centre and hasn't created it yet: finish that first.
+            if (c.blocked === "NO_CENTER" && !c.centers.length && session.user.user_metadata?.pending_center) {
+              router.replace("/onboarding");
+              return;
+            }
+            if (c.is_platform_admin && c.blocked === "NO_CENTER") {
+              router.replace("/super");
+              return;
+            }
+            setBlockedMessage(BLOCKED_MESSAGE[c.blocked ?? "NO_CENTER"]);
+            if (c.blocked !== "SUSPENDED") await supabase.auth.signOut();
             return;
           }
-          p = { id: data.id, name: data.name, role: data.role as Role, active: data.active, default_filter: data.default_filter };
+          p = { id: userId, name: m.name, role: m.role as Role, active: m.active, default_filter: m.default_filter };
         }
       }
       if (!p) {
@@ -126,13 +146,15 @@ export default function AppShell() {
         return;
       }
 
-      // A different account on this device: start from a clean local copy, unless the previous
-      // account still has unsynced changes (those are kept and sent).
-      if (cached && cached.userId !== userId) {
+      // A different account or a different centre on this device: start from a clean local copy,
+      // unless the previous one still has unsynced changes (those are kept and sent).
+      if (cached && (cached.userId !== userId || (cached.centerId && cached.centerId !== c?.center?.id))) {
         await store.ensureLoaded();
         if (store.status.pending + store.status.failed === 0) await store.reset();
       }
-      await setMeta("profile", { userId, profile: p } satisfies CachedProfile);
+      await setMeta("profile", { userId, profile: p, centerId: c?.center?.id, ctx: c ?? undefined } satisfies CachedProfile);
+      applyPalette(c?.center);
+      setCtx(c);
       setProfile(p);
       filterStore.init(supabase, userId, p.default_filter);
       await store.start(supabase, userId);
@@ -169,8 +191,9 @@ export default function AppShell() {
   }
 
   // Deleted or disabled while the app is open: the next sync brings the change, then sign out.
+  // Removed from the centre: my row leaves the centre's member list (or turns inactive).
   const own = profile ? s.get("profiles", profile.id) : undefined;
-  const revoked = !!own && (!!own.deleted_at || !own.active);
+  const revoked = own ? !!own.deleted_at || !own.active : !!profile && s.all("profiles").length > 0;
   useEffect(() => {
     if (!revoked) return;
     setBlockedMessage(own?.deleted_at ? ACCOUNT_DELETED_MESSAGE : ACCOUNT_DISABLED_MESSAGE);
@@ -182,6 +205,27 @@ export default function AppShell() {
 
   const surahs = s.all("quran_surahs");
   const mushaf = useMemo(() => new Mushaf(surahs), [surahs]);
+
+  async function refreshCenter() {
+    const { data } = await supabase.rpc("my_context");
+    if (!data) return;
+    const c = data as unknown as MyContext;
+    applyPalette(c.center);
+    setCtx(c);
+  }
+
+  async function switchCenter(id: string) {
+    if (!ctx || id === ctx.center?.id) return;
+    if (navigator.onLine) await store.sync();
+    if (store.status.pending + store.status.failed > 0) {
+      showToast("في تغييرات لم تُرسل بعد. اتصل بالإنترنت وانتظر حتى تُرسل ثم بدّل المركز");
+      return;
+    }
+    const { error } = await supabase.rpc("switch_center", { p_center_id: id });
+    if (error) return showToast(error.message);
+    await store.reset();
+    location.reload();
+  }
 
   async function logout() {
     if (navigator.onLine) await store.sync();
@@ -201,7 +245,7 @@ export default function AppShell() {
     return (
       <div className="login">
         <div className="loginbox">
-          <h1>📖 حلقات القرآن</h1>
+          <h1>حلقات القرآن</h1>
           <p className="center">{blockedMessage}</p>
           <button style={{ width: "100%", marginTop: 13 }} onClick={() => router.replace("/login")}>
             العودة لتسجيل الدخول
@@ -211,7 +255,7 @@ export default function AppShell() {
     );
   }
 
-  if (!profile || mushaf.total === 0) {
+  if (!profile || !ctx?.center || mushaf.total === 0) {
     return (
       <div className="login">
         <p className="muted center">
@@ -226,13 +270,13 @@ export default function AppShell() {
   }
 
   return (
-    <AppContext.Provider value={{ supabase, profile, mushaf, showToast }}>
+    <AppContext.Provider value={{ supabase, profile, mushaf, showToast, center: ctx!.center!, isOwner: !!ctx?.membership?.is_owner, isPlatformAdmin: !!ctx?.is_platform_admin, refreshCenter }}>
       <header className="no-print">
         <div className="headerrow">
           <div className="brand-row">
-            <Image className="header-logo" src="/images/logo.png" alt="" width={46} height={46} />
+            <CenterMark name={ctx?.center?.name ?? "حلقات"} logo={ctx?.center?.logo_url} />
             <div className="brand-text">
-              <h1>حلقات القرآن</h1>
+              <h1>{ctx?.center?.name ?? "حلقات القرآن"}</h1>
               <div className="dates">
                 <span className="hijri">
                   {greeting()} · {hijriToday()}
@@ -243,10 +287,25 @@ export default function AppShell() {
           </div>
           <div className="userbox">
             <span>
-              {profile.name} — {profile.role === "ADMIN" ? "مدير" : "محفّظ"}
+              {profile.name} — {profile.role === "ADMIN" ? (ctx?.membership?.is_owner ? "صاحب المركز" : "مدير") : "محفّظ"}
             </span>
             <div className="userbox-actions">
+              {ctx && ctx.centers.filter((c) => c.active).length > 1 && (
+                <select className="center-switch" aria-label="المركز" value={ctx.center?.id} onChange={(e) => switchCenter(e.target.value)}>
+                  {ctx.centers.filter((c) => c.active).map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {ctx?.is_platform_admin && (
+                <Link href="/super" className="btn ghost" style={{ padding: "5px 10px", fontSize: 12 }}>
+                  المنصة
+                </Link>
+              )}
               <SyncBadge />
+              <PushToggle />
               <button className="logout" onClick={logout}>
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10" />
@@ -264,6 +323,21 @@ export default function AppShell() {
           <NavButton key={n.id} id={n.id} label={n.label} active={page === n.id} onClick={() => setPage(n.id)} />
         ))}
       </nav>
+
+      {profile.role === "ADMIN" && ctx?.center && (!ctx.center.onboarded || ctx.center.status === "TRIAL") && (
+        <div className="plan-banner no-print">
+          <span>
+            {!ctx.center.onboarded
+              ? "أكمل إعداد مركزك: الشعار والألوان وأول حلقة وأول معلّم."
+              : `فترة تجربة مجانية${trialDays(ctx.center.trial_ends_at)} — الخطة المجانية حتى 60 طالبًا.`}
+          </span>
+          {!ctx.center.onboarded && (
+            <Link href="/onboarding" className="btn" style={{ padding: "6px 12px" }}>
+              إكمال الإعداد
+            </Link>
+          )}
+        </div>
+      )}
 
       <main>
         <div className="no-print">
@@ -310,4 +384,10 @@ function hijriToday(): string {
   } catch {
     return "";
   }
+}
+
+function trialDays(end: string | null): string {
+  if (!end) return "";
+  const d = Math.ceil((new Date(end).getTime() - Date.now()) / 86400000);
+  return d > 0 ? `: باقي ${d} يومًا` : ": انتهت";
 }

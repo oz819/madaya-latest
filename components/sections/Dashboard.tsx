@@ -18,7 +18,7 @@ import { addDays, todayStr, type Attendance, type Circle } from "@/lib/types";
 // the device from the synced window (the last 60 days), so it also opens offline.
 export default function Dashboard({ openStudent, openManage }: { openStudent: (id: string) => void; openManage: () => void }) {
   const s = useStore();
-  const { supabase, mushaf } = useApp();
+  const { supabase, mushaf, isPlatformAdmin } = useApp();
   const settings = useRankingSettings(supabase);
   const { scopedCircles, inScope } = useScope();
   const pendingRegs = usePendingRegistrations();
@@ -131,7 +131,8 @@ export default function Dashboard({ openStudent, openManage }: { openStudent: (i
 
       <AbsenceAlerts students={students} open={openStudent} />
 
-      <BackupStatus />
+      {/* The nightly backup covers the whole platform's database: ours to watch, not each centre's. */}
+      {isPlatformAdmin && <BackupStatus />}
 
       <div className="card">
         <h3>🏫 الحلقات</h3>

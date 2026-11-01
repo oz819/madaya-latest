@@ -115,7 +115,8 @@ const SYNC_TABLES = [
 ] as const;
 
 // Server-managed columns are never sent: triggers set them (spec §9).
-const SERVER_MANAGED = new Set(["updated_at", "updated_by", "created_at", "teacher_id", "deleted_by"]);
+// center_id comes from the signed-in centre on the server (default + RLS), never from the device.
+const SERVER_MANAGED = new Set(["updated_at", "updated_by", "created_at", "teacher_id", "deleted_by", "center_id"]);
 
 // Soft-deleted rows of these tables stay in the local copy (so a restore is just another update)
 // but are hidden from every list: all() skips them. get() still finds them, e.g. for old names.

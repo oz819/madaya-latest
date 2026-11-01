@@ -29,7 +29,7 @@ export function usePendingRegistrations(): number | null {
 // requested section and accepts (the student is created with the guardian's number) or rejects.
 export default function Registrations() {
   const s = useStore();
-  const { supabase, showToast } = useApp();
+  const { supabase, showToast, center } = useApp();
   const [rows, setRows] = useState<Request[] | null>(null);
   const [error, setError] = useState("");
   const [circleFor, setCircleFor] = useState<Record<string, string>>({});
@@ -76,7 +76,7 @@ export default function Registrations() {
 
   const pending = rows?.filter((r) => r.status === "PENDING") ?? [];
   const done = rows?.filter((r) => r.status !== "PENDING") ?? [];
-  const link = typeof location === "undefined" ? "" : `${location.origin}/register`;
+  const link = typeof location === "undefined" ? "" : `${location.origin}/${center.slug}/register`;
 
   return (
     <div className="card registrations">

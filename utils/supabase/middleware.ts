@@ -8,10 +8,12 @@ import type { Database } from "@/lib/supabase/database.types";
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
+  const demo = process.env.NEXT_PUBLIC_DEMO === "1";
   const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    demo ? `${request.nextUrl.origin}/sb` : process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
+      ...(demo ? { cookieOptions: { name: "sb-demo-auth-token" } } : {}),
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -37,16 +39,15 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // Public pages for families, open whether signed in or not: a student's page by its private
-  // link, the registration form and the honor board.
-  if (/^\/(p\/|register|honor)/.test(pathname)) {
-    return supabaseResponse;
-  }
+  // Only the app itself and the pages for signed-in people need a session. Everything else is
+  // public: centre pages (/{slug}, /{slug}/register, /{slug}/honor), the family page (/p/…),
+  // registration, "سجّل مركزك" (/signup) and invitation links (/invite/…).
+  const needsSession = pathname === "/" || pathname.startsWith("/onboarding") || pathname.startsWith("/super");
 
   // Reachable without a session; a signed-in visitor is sent to the app instead.
   const isSignedOutRoute = pathname.startsWith("/login") || pathname.startsWith("/forgot-password");
 
-  if (!user && !isSignedOutRoute) {
+  if (!user && needsSession) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

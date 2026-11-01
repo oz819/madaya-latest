@@ -4,7 +4,7 @@
 //   other same-origin  stale-while-revalidate (icons, manifest, background image)
 // Supabase requests are cross-origin and never touched; data offline comes from IndexedDB.
 
-const VERSION = "v1";
+const VERSION = "v2";
 const SHELL = `shell-${VERSION}`;
 const STATIC = `static-${VERSION}`;
 const SHELL_URL = "/";
@@ -32,7 +32,7 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/auth/")) return;
+  if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/auth/") || url.pathname.startsWith("/sb/")) return;
 
   if (url.pathname.startsWith("/_next/static/")) {
     event.respondWith(
@@ -85,6 +85,42 @@ self.addEventListener("fetch", (event) => {
         })
         .catch(() => hit);
       return hit || net;
+    })
+  );
+});
+
+// ---- Web Push (المرحلة 3): show what the server sends; tapping opens the app (or the given page).
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = { title: "حلقات", body: event.data ? event.data.text() : "" };
+  }
+  event.waitUntil(
+    self.registration.showNotification(data.title || "حلقات", {
+      body: data.body || "",
+      icon: "/icon-192.png",
+      badge: "/icon-96.png",
+      dir: "rtl",
+      lang: "ar",
+      tag: data.tag,
+      data: { url: data.url || "/" },
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || "/";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      const open = list.find((c) => new URL(c.url).origin === self.location.origin);
+      if (open) {
+        open.navigate(url).catch(() => {});
+        return open.focus();
+      }
+      return self.clients.openWindow(url);
     })
   );
 });

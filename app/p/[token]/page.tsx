@@ -25,6 +25,7 @@ type View = {
   lessons: { lesson_date: string; title: string }[];
   exams?: { exam_date: string; kind: string; juz_no: number | null; surah_no: number | null; score: number; passed: boolean }[];
   goal?: { weekly_ayahs: number; done: number } | null;
+  center?: { name: string; slug: string; logo_url: string | null; palette: "indigo" | "navy" | "plum" | "slate"; primary_color: string | null };
 };
 
 export default async function GuardianPage({ params }: PageProps<"/p/[token]">) {
@@ -68,7 +69,7 @@ export default async function GuardianPage({ params }: PageProps<"/p/[token]">) 
     .slice(0, 14);
 
   return (
-    <PublicShell>
+    <PublicShell center={v.center}>
       <div className="card guardian-head">
         <h2>{v.student.name}</h2>
         <span className="muted">{v.student.circle ?? ""}</span>

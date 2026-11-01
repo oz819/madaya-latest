@@ -7,7 +7,7 @@ import { SECTION_LABEL, SECTIONS, type Section } from "@/lib/filter";
 
 const EMPTY = { name: "", age: "", section: "" as Section | "", guardianName: "", phone: "", memorized: "", website: "" };
 
-export default function RegisterForm() {
+export default function RegisterForm({ centerSlug }: { centerSlug: string }) {
   const [supabase] = useState(() => createClient());
   const [f, setF] = useState(EMPTY);
   const [error, setError] = useState("");
@@ -36,6 +36,7 @@ export default function RegisterForm() {
       p_guardian_phone: phone,
       p_memorized: f.memorized.trim() || null,
       p_trap: f.website || null,
+      p_center: centerSlug,
     });
     setBusy(false);
     if (error) return setError(/[ء-ي]/.test(error.message) ? error.message : "تعذّر الإرسال، حاولوا مرة أخرى");

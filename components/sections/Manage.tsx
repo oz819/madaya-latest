@@ -9,6 +9,9 @@ import { SECTIONS, SECTION_LABEL, effectiveFilter, filterLabel, filterOptions } 
 import CenterSettings, { HonorSettings } from "@/components/CenterSettings";
 import Registrations from "@/components/Registrations";
 import ExportExcel from "@/components/ExportExcel";
+import CenterProfile from "@/components/center/CenterProfile";
+import Invites from "@/components/center/Invites";
+import ImportStudents from "@/components/center/ImportStudents";
 
 // Admin-only actions (spec §5.4). These need a connection: they write straight to Supabase
 // (RLS re-checks is_admin()) and then refresh the local copy.
@@ -19,9 +22,12 @@ export default function Manage() {
         صلاحيات المدير: إدارة المحفّظين والمدراء، إنشاء الحلقات وتسميتها وأرشفتها، أرشفة الطلاب، وإدارة كتب العربية. كل محفّظ مفعّل يرى جميع
         الطلاب ويضيف ويعدّل إدخالاتهم. هذه الإجراءات تحتاج اتصالًا بالإنترنت.
       </div>
+      <CenterProfile />
       <Registrations />
+      <Invites />
       <Teachers />
       <Halaqat />
+      <ImportStudents />
       <ArabicBooks />
       <CenterSettings />
       <HonorSettings />

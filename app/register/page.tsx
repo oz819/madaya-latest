@@ -1,19 +1,20 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import PublicShell from "@/components/PublicShell";
 import RegisterForm from "@/components/RegisterForm";
+import { centerForHost } from "@/lib/centerServer";
 
-// تسجيل طالب جديد: a public form the centre sends to families. The request waits for the admin,
-// who accepts it into a halaqa (الإدارة ← طلبات التسجيل).
+// تسجيل طالب جديد on a centre's own domain (madayacentre.com/register). On the platform the form
+// lives at /{slug}/register. The request waits for the admin (الإدارة ← طلبات التسجيل).
+export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "تسجيل طالب جديد", robots: { index: false, follow: false } };
 
-export const metadata: Metadata = {
-  title: "تسجيل طالب جديد — حلقات القرآن",
-  robots: { index: false, follow: false },
-};
-
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  const center = await centerForHost();
+  if (!center) notFound();
   return (
-    <PublicShell>
-      <RegisterForm />
+    <PublicShell center={center}>
+      <RegisterForm centerSlug={center.slug} />
     </PublicShell>
   );
 }
