@@ -4,8 +4,10 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // The public demo's in-process Postgres (lib/demo) loads its wasm and the SQL files at runtime.
   serverExternalPackages: ["@electric-sql/pglite"],
+  // Every server route can reach it in demo mode (server components call it in-process).
   outputFileTracingIncludes: {
-    "/sb/[...path]": ["./supabase/**/*.sql", "./node_modules/@electric-sql/pglite/dist/**"],
+    "/*": ["./supabase/**/*.sql", "./node_modules/@electric-sql/pglite/dist/**"],
+    "/**/*": ["./supabase/**/*.sql", "./node_modules/@electric-sql/pglite/dist/**"],
   },
   async headers() {
     return [
