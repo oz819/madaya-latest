@@ -150,7 +150,7 @@ export default function SignupPage() {
                 <input id="s-pass" type="password" dir="ltr" value={f.password} onChange={set("password")} autoComplete="new-password" />
               </div>
               {/* Spam trap: hidden from people, filled by bots. */}
-              <input name="website" value={f.website} onChange={set("website")} tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: "absolute", left: -9999, width: 1, height: 1, opacity: 0 }} />
+              <input name="website" value={f.website} onChange={set("website")} tabIndex={-1} autoComplete="off" aria-hidden="true" className="hp-field" />
               <button type="submit" className="btn-block" disabled={busy}>
                 {busy ? "..." : tr("signup.submit")}
               </button>

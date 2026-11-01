@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import DevCredit from "@/components/landing/DevCredit";
 import LoginDialog from "@/components/center/LoginDialog";
-import { GeoStar } from "@/components/center/Geo";
+import StarField from "@/components/center/StarField";
 import { applyPalette, slugify } from "@/lib/center";
 import { dirOf, t, type Key, type Locale } from "@/lib/i18n";
 
@@ -46,7 +46,9 @@ export default function PlatformLanding() {
 
       <main className="geo-bg" style={{ flex: 1 }}>
         <section className="px-hero">
-          <GeoStar style={{ width: 72, height: 72, margin: "0 auto", opacity: 0.8 }} />
+          <div className="px-art" aria-hidden="true">
+            <StarField className="cx-stars" />
+          </div>
           <h1>{tr("platform.tagline")}</h1>
           <p>{tr("platform.lead")}</p>
           <div className="cx-cta" style={{ justifyContent: "center" }}>

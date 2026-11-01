@@ -200,8 +200,10 @@ nav > button svg { flex: none; }
 .dev-credit.compact { margin-top: 16px; }
 
 /* ---------------------------------------------------------------- centre public page (/{slug} and /login) */
-.cx { min-height: 100vh; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
-.cx-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 1080px; width: 100%; margin: 0 auto; padding: 16px; }
+.cx { min-height: 100vh; background: var(--bg); color: var(--text); display: flex; flex-direction: column; overflow-x: clip; }
+/* globals.css gives every <main> margin:auto, which in this flex column stops it from stretching and let wide content push the page past the phone's width */
+.cx > main { margin: 0; max-width: none; padding: 0; width: 100%; min-width: 0; }
+.cx-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 1080px; width: 100%; margin: 0 auto; padding: 16px; background: transparent; color: inherit; position: relative; box-shadow: none; }
 .cx-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--text); text-decoration: none; min-width: 0; }
 .cx-brand img, .cx-brand .header-mark { width: 38px; height: 38px; border-radius: var(--r-md); object-fit: contain; }
 .cx-brand span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -217,12 +219,12 @@ nav > button svg { flex: none; }
 .btn.ghost { background: transparent; color: var(--text); border-color: var(--line-strong); }
 .btn.ghost:hover { background: var(--surface-2); }
 .cx-art { position: relative; aspect-ratio: 1; width: 100%; max-width: 380px; justify-self: center; }
-.cx-art .geo-star { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .55; }
+.cx-art .cx-stars { position: absolute; inset: -22%; width: 144%; height: 144%; pointer-events: none; }
 .cx-art .cx-logo { position: absolute; inset: 22%; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 50%; box-shadow: var(--shadow-2); overflow: hidden; }
 .cx-art .cx-logo img { width: 72%; height: 72%; object-fit: contain; }
 .cx-art .cx-logo .header-mark { width: 46%; height: 46%; border-radius: 50%; font-size: clamp(28px, 6vw, 48px); }
 .cx-section { max-width: 1080px; width: 100%; margin: 0 auto; padding: 8px 16px 40px; }
-.cx-contact { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+.cx-contact { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr)); gap: 10px; }
 .cx-contact a, .cx-contact div { display: flex; align-items: center; gap: 10px; padding: 14px; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--line); color: var(--text); text-decoration: none; min-width: 0; }
 .cx-contact a:hover { border-color: var(--accent); }
 .cx-contact svg { flex: none; width: 20px; height: 20px; color: var(--accent); }
@@ -241,10 +243,12 @@ nav > button svg { flex: none; }
 @media (max-width: 420px) { .cx-nav .btn span { display: none; } }
 
 /* ---------------------------------------------------------------- platform page + sign-up + wizard */
-.px-hero { max-width: 980px; margin: 0 auto; padding: clamp(32px, 8vw, 96px) 16px 24px; text-align: center; }
+.px-hero { max-width: 980px; width: 100%; margin: 0 auto; padding: clamp(32px, 8vw, 96px) 16px 24px; text-align: center; }
 .px-hero h1 { font-size: var(--fs-2xl); line-height: 1.25; margin: 14px 0 0; }
 .px-hero p { color: var(--muted); font-size: clamp(15px, 2.2vw, 18px); max-width: 60ch; margin: 16px auto 0; line-height: 1.9; }
-.px-grid { max-width: 980px; margin: 0 auto; padding: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.px-grid { max-width: 980px; margin: 0 auto; padding: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px; width: 100%; }
+.px-art { position: relative; width: min(300px, 70vw); aspect-ratio: 1; margin: -12px auto -8px; }
+.px-art .cx-stars { position: absolute; inset: -15%; width: 130%; height: 130%; pointer-events: none; }
 .px-card { padding: 18px; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--line); }
 .px-card h3 { margin: 10px 0 4px; font-size: var(--fs-md); }
 .px-card p { margin: 0; color: var(--muted); font-size: var(--fs-sm); line-height: 1.8; }

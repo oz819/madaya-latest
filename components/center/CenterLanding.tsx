@@ -5,7 +5,8 @@ import Link from "next/link";
 import { FacebookIcon, InstagramIcon, WhatsAppIcon } from "@/components/SocialIcons";
 import DevCredit from "@/components/landing/DevCredit";
 import LoginDialog from "@/components/center/LoginDialog";
-import { CenterMark, GeoStar } from "@/components/center/Geo";
+import { CenterMark } from "@/components/center/Geo";
+import StarField from "@/components/center/StarField";
 import { accentStyle, applyPalette, whatsappLink, type PublicCenter } from "@/lib/center";
 
 // A centre's public page (المرحلة 0): its name, logo, a short about paragraph and how to reach it —
@@ -62,7 +63,7 @@ export default function CenterLanding({ center, base }: { center: PublicCenter; 
             </div>
           </div>
           <div className="cx-art" aria-hidden="true">
-            <GeoStar />
+            <StarField className="cx-stars" />
             <div className="cx-logo">
               <CenterMark name={center.name} logo={center.logo_url} size={160} />
             </div>
