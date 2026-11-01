@@ -9,7 +9,8 @@ import { DEMO, DEMO_INTERNAL_URL, demoFetch } from "@/lib/demo/fetch";
 // this client itself enforces no permissions at all.
 export function createAdminClient() {
   const url = DEMO ? DEMO_INTERNAL_URL : process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // The demo's stand-in database has its own made-up key (lib/demo/engine.ts); never a real one.
+  const key = DEMO ? "demo-service-key" : process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
     throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured on the server.");
   }
