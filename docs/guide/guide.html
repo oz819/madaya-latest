@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>منصة حلقات — دليل الفريق</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 16mm 15mm 18mm; }
+  :root { --ink: #161a2b; --muted: #5b6275; --line: #e3e6ee; --soft: #f4f5f9; --accent: #2f3e9e; --accent-soft: #eef0fb; --sand: #b8925a; --sand-soft: #f8f1e6; --ok: #1f7a4d; --warn: #9a5b00; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #fff; }
+  body { font-family: "IBM Plex Sans Arabic", sans-serif; color: var(--ink); font-size: 10.2pt; line-height: 1.75; }
+  h1, h2, h3 { line-height: 1.35; margin: 0; }
+  h2 { font-size: 19pt; font-weight: 700; margin: 0 0 4mm; padding-bottom: 2.5mm; border-bottom: 2px solid var(--accent); display: flex; align-items: baseline; gap: 3mm; }
+  h2 .n { color: var(--accent); font-size: 13pt; font-weight: 600; }
+  h3 { font-size: 12.5pt; font-weight: 700; margin: 4.5mm 0 1.6mm; color: var(--accent); }
+  p { margin: 0 0 3mm; }
+  ul, ol { margin: 0 0 3mm; padding-inline-start: 6mm; }
+  li { margin-bottom: 1.2mm; }
+  b { font-weight: 600; }
+  code, .ltr { direction: ltr; unicode-bidi: isolate; font-family: "IBM Plex Sans Arabic", monospace; background: var(--soft); border: 1px solid var(--line); padding: 0 1.6mm; border-radius: 1.4mm; font-size: 9.4pt; }
+  section { break-before: page; }
+  section.first { break-before: auto; }
+  .lead { font-size: 11.5pt; color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; font-size: 9.8pt; break-inside: avoid; }
+  th, td { border: 1px solid var(--line); padding: 1.4mm 2.4mm; text-align: right; vertical-align: top; }
+  th { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  tr:nth-child(even) td { background: #fafbfd; }
+  .box { border-radius: 3mm; padding: 3mm 4.5mm; margin: 2.5mm 0 3mm; break-inside: avoid; }
+  .box.info { background: var(--accent-soft); border: 1px solid #d6dbf5; }
+  .box.note { background: var(--sand-soft); border: 1px dashed var(--sand); }
+  .box.ok { background: #edf7f1; border: 1px solid #cbe8d7; }
+  .box b.t { display: block; margin-bottom: 1mm; }
+  .box p:last-child, .box ul:last-child { margin-bottom: 0; }
+  .steps { counter-reset: s; list-style: none; padding: 0; }
+  .steps > li { counter-increment: s; position: relative; padding-inline-start: 10mm; margin-bottom: 2.6mm; }
+  .steps > li::before { content: counter(s); position: absolute; inset-inline-start: 0; top: .4mm; width: 6.6mm; height: 6.6mm; border-radius: 50%; background: var(--accent); color: #fff; font-size: 9pt; font-weight: 600; display: grid; place-items: center; line-height: 1; }
+  .shots { display: flex; gap: 5mm; justify-content: center; flex-wrap: wrap; margin: 3mm 0 4mm; break-inside: avoid; }
+  .shot { margin: 0; text-align: center; break-inside: avoid; }
+  .shot img { display: block; border: 1px solid #d9dce6; border-radius: 4mm; box-shadow: 0 1mm 3mm rgba(20,25,50,.08); background: #fff; }
+  .phone img { width: 52mm; height: 112mm; object-fit: cover; object-position: top; }
+  .phone.sm img { width: 44mm; height: 95mm; }
+  .phone.tall img { width: 50mm; height: 131mm; }
+  .wide img { width: 170mm; border-radius: 2.5mm; }
+  .shot figcaption { font-size: 8.6pt; color: var(--muted); margin-top: 1.6mm; max-width: 56mm; margin-inline: auto; line-height: 1.6; }
+  .wide figcaption { max-width: none; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; align-items: start; }
+  .side { display: grid; grid-template-columns: 1fr 56mm; gap: 7mm; align-items: start; }
+  .tag { display: inline-block; font-size: 8.4pt; padding: 0 2mm; border-radius: 99px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .tag.sand { background: var(--sand-soft); color: #7d5a26; }
+  .tag.ok { background: #e3f3ea; color: var(--ok); }
+  .tag.warn { background: #fff1dc; color: var(--warn); }
+  /* cover */
+  .cover { height: 263mm; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
+  .cover .top { display: flex; align-items: center; gap: 4mm; color: var(--accent); font-weight: 700; font-size: 13pt; }
+  .cover .mark { width: 13mm; height: 13mm; border-radius: 3mm; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 17pt; }
+  .cover h1 { font-size: 34pt; font-weight: 700; margin-top: 8mm; }
+  .cover .sub { font-size: 14pt; color: var(--muted); margin-top: 4mm; max-width: 140mm; }
+  .cover svg.star { position: absolute; left: -38mm; top: 70mm; width: 170mm; height: 170mm; opacity: .9; }
+  .cover .meta { border-top: 1px solid var(--line); padding-top: 4mm; color: var(--muted); font-size: 9.6pt; display: flex; justify-content: space-between; gap: 6mm; }
+  .toc { columns: 2; column-gap: 10mm; list-style: none; padding: 0; margin-top: 3mm; }
+  .toc li { break-inside: avoid; padding: 1.6mm 0; border-bottom: 1px dotted var(--line); }
+  .toc .n { color: var(--accent); font-weight: 600; margin-inline-end: 2mm; }
+  .flow { display: flex; align-items: center; justify-content: center; gap: 2mm; flex-wrap: wrap; margin: 3mm 0 5mm; font-size: 9.4pt; }
+  .flow span { background: var(--soft); border: 1px solid var(--line); border-radius: 2mm; padding: 1.6mm 3mm; font-weight: 500; }
+  .flow i { color: var(--accent); font-style: normal; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- ============================== COVER -->
+<div class="cover">
+  <div>
+    <div class="top"><span class="mark">ح</span> منصة حلقات</div>
+    <h1>دليل الفريق</h1>
+    <div class="sub">شرح كامل للمنصة الجديدة متعددة المراكز: شو هي، كيف بيسجّل المركز، كيف بيشتغل عليها المدير والمعلّم وولي الأمر، ووين وصلنا.</div>
+  </div>
+  <svg class="star" viewBox="-100 -100 200 200" aria-hidden="true">
+    <g fill="none" stroke-linecap="round">
+      <rect x="-60" y="-60" width="120" height="120" stroke="#2f3e9e" stroke-opacity=".35" stroke-width=".8" stroke-dasharray=".6 2.2"/>
+      <rect x="-60" y="-60" width="120" height="120" transform="rotate(45)" stroke="#2f3e9e" stroke-opacity=".35" stroke-width=".8" stroke-dasharray=".6 2.2"/>
+      <circle r="43" stroke="#b8925a" stroke-opacity=".5" stroke-width=".8" stroke-dasharray=".6 2"/>
+      <rect x="-30" y="-30" width="60" height="60" transform="rotate(22.5)" stroke="#b8925a" stroke-opacity=".55" stroke-width=".8" stroke-dasharray=".6 2"/>
+      <rect x="-30" y="-30" width="60" height="60" transform="rotate(67.5)" stroke="#b8925a" stroke-opacity=".55" stroke-width=".8" stroke-dasharray=".6 2"/>
+      <circle r="14" stroke="#2f3e9e" stroke-opacity=".45" stroke-width=".8" stroke-dasharray=".6 2"/>
+    </g>
+  </svg>
+  <div>
+    <div class="box info" style="max-width:120mm">
+      <b class="t">جرّبوها بأنفسكم</b>
+      <span class="ltr">https://saas--madaya-demo.netlify.app</span><br>
+      بيانات وهمية. الدخول بالكود <code>123456</code> أو كلمة المرور <code>demo1234</code>.
+    </div>
+    <div class="meta"><span>الإصدار التجريبي — 1 تشرين الثاني 2026</span><span>المستودع: <span class="ltr">oz819/madaya-latest</span> (خاص)</span></div>
+  </div>
+</div>
+
+<!-- ============================== TOC + IDEA -->
+<section>
+  <h2>المحتويات</h2>
+  <ol class="toc">
+    <li><span class="n">1</span>الفكرة باختصار</li>
+    <li><span class="n">2</span>الروابط وحسابات التجربة</li>
+    <li><span class="n">3</span>الأدوار: مين بيشوف شو</li>
+    <li><span class="n">4</span>كيف بيسجّل مركز جديد</li>
+    <li><span class="n">5</span>صفحة المركز العامة وهويته</li>
+    <li><span class="n">6</span>تسجيل الدخول</li>
+    <li><span class="n">7</span>إضافة المعلّمين والمدراء</li>
+    <li><span class="n">8</span>إدخال الطلاب</li>
+    <li><span class="n">9</span>شغل المعلّم اليومي</li>
+    <li><span class="n">10</span>أدوات المدير</li>
+    <li><span class="n">11</span>ولي الأمر</li>
+    <li><span class="n">12</span>الجوال وبدون إنترنت والإشعارات</li>
+    <li><span class="n">13</span>لوحة إدارة المنصة والخطط</li>
+    <li><span class="n">14</span>الأمان وعزل البيانات</li>
+    <li><span class="n">15</span>وين وصلنا وشو الخطوة الجاية</li>
+  </ol>
+
+  <h2 style="margin-top:6mm"><span class="n">1</span>الفكرة باختصار</h2>
+  <p class="lead">برنامج مضايا لمتابعة حلقات القرآن صار <b>منصة</b> بتخدم أي عدد من المراكز. كل مركز بيسجّل لحاله خلال دقائق، وبياخد نسخته الخاصة من البرنامج باسمه وشعاره وألوانه، وبياناته معزولة تمامًا عن باقي المراكز.</p>
+  <div class="flow">
+    <span>المركز بيسجّل</span><i>←</i><span>بيأكّد بريده</span><i>←</i><span>معالج إعداد (4 خطوات)</span><i>←</i><span>بيدعي معلّميه</span><i>←</i><span>بيبلّشوا شغل</span>
+  </div>
+  <h3>شو تغيّر عن برنامج مضايا القديم؟</h3>
+  <table>
+    <tr><th style="width:30%">قبل</th><th>هلق</th></tr>
+    <tr><td>مركز واحد (مضايا)</td><td>عدد غير محدود من المراكز، كل واحد إلو رابطه: <span class="ltr">/madaya</span>، <span class="ltr">/doha</span>…</td></tr>
+    <tr><td>الحسابات بنضيفها نحنا يدويًا</td><td>صاحب المركز بيسجّل لحاله، وبيدعي فريقه بالبريد أو واتساب</td></tr>
+    <tr><td>الهوية خضراء ثابتة</td><td>هوية بيضاء حديثة، وكل مركز بيختار من 4 لوحات ألوان وبيرفع شعاره</td></tr>
+    <tr><td>الصفحة الرئيسية فيها شرح للمزايا</td><td>صفحة المركز صارت نبذة عنه وشعاره وطرق التواصل وملاحظات بيكتبها المدير</td></tr>
+    <tr><td>—</td><td>لوحة إلنا لإدارة كل المراكز، وخطط اشتراك بحدود لعدد الطلاب</td></tr>
+  </table>
+  <div class="box ok"><b class="t">وكل اللي كان موجود ضل موجود</b>الحفظ والمراجعة والتلاوة والتلقين والحضور والعربية والاختبارات والتقارير ورابط ولي الأمر ولوحة الشرف وسجل التعديلات والعمل بدون إنترنت. كلها شغالة متل ما هي، بس صارت لكل مركز لحاله.</div>
+</section>
+
+<!-- ============================== LINKS -->
+<section>
+  <h2><span class="n">2</span>الروابط وحسابات التجربة</h2>
+  <h3>روابط النسخة التجريبية</h3>
+  <table>
+    <tr><th style="width:34%">الصفحة</th><th>الرابط</th></tr>
+    <tr><td>صفحة المنصة (ومنها "سجّل مركزك")</td><td><span class="ltr">saas--madaya-demo.netlify.app/login</span></td></tr>
+    <tr><td>تسجيل مركز جديد</td><td><span class="ltr">saas--madaya-demo.netlify.app/signup</span></td></tr>
+    <tr><td>صفحة مركز مضايا</td><td><span class="ltr">saas--madaya-demo.netlify.app/madaya</span></td></tr>
+    <tr><td>صفحة مركز الدوحة (وهمي)</td><td><span class="ltr">saas--madaya-demo.netlify.app/doha</span></td></tr>
+    <tr><td>نموذج تسجيل طالب لأي مركز</td><td><span class="ltr">…/madaya/register</span></td></tr>
+    <tr><td>لوحة الشرف لأي مركز</td><td><span class="ltr">…/madaya/honor</span></td></tr>
+  </table>
+
+  <h3>حسابات التجربة</h3>
+  <p>كلها بتفوت بالكود <code>123456</code> أو بكلمة المرور <code>demo1234</code>:</p>
+  <table>
+    <tr><th style="width:30%">البريد</th><th>مين هو</th><th style="width:38%">جرّب فيه</th></tr>
+    <tr><td><span class="ltr">admin@demo.com</span></td><td>مدير مركز مضايا</td><td>كل شي: الإدارة، الدعوات، الاستيراد، بيانات المركز</td></tr>
+    <tr><td><span class="ltr">teacher@demo.com</span></td><td>معلّم بمضايا</td><td>شو بيشوف المعلّم العادي</td></tr>
+    <tr><td><span class="ltr">doha@demo.com</span></td><td>مدير مركز الدوحة</td><td>تأكّد إنو ما بيشوف ولا طالب من مضايا</td></tr>
+    <tr><td><span class="ltr">both@demo.com</span></td><td>معلّم بالمركزين</td><td>مبدّل المراكز فوق</td></tr>
+    <tr><td><span class="ltr">super@demo.com</span></td><td>إدارة المنصة (نحنا)</td><td>قائمة المراكز، تفعيل وإيقاف، تغيير الخطة</td></tr>
+  </table>
+
+  <div class="box note">
+    <b class="t">انتبهوا بالنسخة التجريبية</b>
+    <ul>
+      <li>البيانات مشتركة بين كل اللي بيجرّبوا، وأي تعديل بياخد كم ثانية ليتحفظ.</li>
+      <li>ما بتنبعت إيميلات حقيقية. الكود دايمًا <code>123456</code>، ورابط الدعوة بيطلع على الشاشة لتنسخوه.</li>
+      <li>الموقع الحقيقي <span class="ltr">madayacentre.com</span> وبياناته ما انلمسوا.</li>
+    </ul>
+  </div>
+
+  <h3>الروابط بعد الإطلاق</h3>
+  <ul>
+    <li><b>مضايا</b> بتضل على <span class="ltr">madayacentre.com</span> متل ما هي.</li>
+    <li><b>باقي المراكز</b> بتصير على <span class="ltr">madayacentre.com/doha</span>، أو أحسن: على دومين خاص بالمنصة متل <span class="ltr">halaqat.app/doha</span> <span class="tag sand">قرار للتيم</span></li>
+    <li><b>مركز بدو دومينه الخاص</b> منربطه إلو، متل ما مضايا مربوطة على دومينها.</li>
+  </ul>
+</section>
+
+<!-- ============================== ROLES -->
+<section>
+  <h2><span class="n">3</span>الأدوار: مين بيشوف شو</h2>
+  <p>كل شخص إلو حساب واحد (بريد)، وبيقدر يكون عضو بأكتر من مركز، وبكل مركز إلو دور.</p>
+  <table>
+    <tr><th style="width:22%">الدور</th><th>شو بيقدر يعمل</th><th style="width:28%">شو ما بيقدر</th></tr>
+    <tr><td><b>صاحب المركز</b><br><span class="tag">مدير + مالك</span></td><td>كل شي جوّا مركزه: بيانات المركز وشعاره وألوانه، دعوة مدراء ومعلّمين، الحلقات، الطلاب، الإعدادات، سجل التعديلات والمحذوفات.</td><td>ما حدا بيقدر ينزّل رتبته أو يحذفه من المركز.</td></tr>
+    <tr><td><b>مدير</b></td><td>متل صاحب المركز تقريبًا: إدارة الفريق والحلقات والطلاب والتقارير.</td><td>ما بيقدر يشيل صاحب المركز.</td></tr>
+    <tr><td><b>معلّم (محفّظ)</b></td><td>طلاب حلقاته: الحضور، التسميع (حفظ، مراجعة، تلاوة)، التلقين، العربية، الملاحظات، التقارير وإرسالها لأولياء الأمور.</td><td>ما بيشوف الإدارة ولا سجل التعديلات.</td></tr>
+    <tr><td><b>ولي الأمر</b></td><td>بيفتح رابط خاص بابنه: الحضور، الحفظ، الملاحظات، باسم المركز وشعاره. ما بيحتاج حساب.</td><td>ما بيشوف غير ابنه.</td></tr>
+    <tr><td><b>إدارة المنصة</b><br><span class="tag sand">نحنا</span></td><td>قائمة كل المراكز وأعداد طلابها، تفعيل وإيقاف مركز، تغيير خطته.</td><td>ما بتشوف بيانات المراكز اليومية (الطلاب والتسميع).</td></tr>
+  </table>
+  <div class="box info"><b class="t">معلّم بأكتر من مركز</b>إذا معلّم بيدرّس بمركزين، بيفوت بنفس البريد، وبيطلعله فوق مبدّل بيختار منه المركز. كل مركز بيشوف بياناته لحاله.</div>
+  <div class="shots">
+    <figure class="shot phone sm"><img src="jpg/m-both.jpg"><figcaption>معلّم بالمركزين: مبدّل المراكز بأعلى الشاشة</figcaption></figure>
+    <figure class="shot phone sm"><img src="jpg/m-app-students.jpg"><figcaption>مدير مضايا: كل التبويبات بما فيها الإدارة</figcaption></figure>
+  </div>
+</section>
+
+<!-- ============================== SIGNUP -->
+<section>
+  <h2><span class="n">4</span>كيف بيسجّل مركز جديد</h2>
+  <p>صاحب المركز بيعمل كل شي لحاله، وما بيحتاج يتواصل معنا.</p>
+  <ol class="steps">
+    <li><b>بيفتح صفحة المنصة وبيضغط "سجّل مركزك مجانًا"</b>، أو بيفوت مباشرة على <span class="ltr">/signup</span>.</li>
+    <li><b>بيعبّي النموذج:</b> اسم المركز، الرابط (بيتقترح لحاله من الاسم، أحرف إنجليزية صغيرة)، الدولة، المدينة، اسمه، بريده، وكلمة مرور.</li>
+    <li><b>بيأكّد بريده:</b> بيوصله إيميل فيه رابط تأكيد. هاد بيمنع التسجيل الوهمي. <span class="tag warn">بالنسخة التجريبية ما في إيميل، بيكمّل مباشرة</span></li>
+    <li><b>معالج الإعداد</b> بأربع خطوات: (1) بيانات المركز، (2) الشعار والألوان، (3) أول حلقة وأسماء طلابها، (4) دعوة أول معلّم. أي خطوة بيقدر يتخطّاها ويرجعلها بعدين.</li>
+    <li><b>بيدخل على مركزه</b> وبيلاقي الحلقة والطلاب جاهزين، وبيصير هو صاحب المركز ومديره.</li>
+  </ol>
+  <div class="shots">
+    <figure class="shot phone tall"><img src="jpg/m-signup.jpg"><figcaption>نموذج "سجّل مركزك"</figcaption></figure>
+    <figure class="shot phone tall"><img src="jpg/m-ob1.jpg"><figcaption>المعالج 1: بيانات المركز</figcaption></figure>
+    <figure class="shot phone tall"><img src="jpg/m-ob2.jpg"><figcaption>المعالج 2: الشعار ولوحة الألوان</figcaption></figure>
+  </div>
+</section>
+<section>
+  <div class="shots">
+    <figure class="shot phone tall"><img src="jpg/m-ob3.jpg"><figcaption>المعالج 3: أول حلقة، وكل سطر اسم طالب</figcaption></figure>
+    <figure class="shot phone tall"><img src="jpg/m-ob4.jpg"><figcaption>المعالج 4: دعوة أول معلّم، والرابط جاهز للنسخ أو واتساب</figcaption></figure>
+    <figure class="shot phone tall"><img src="jpg/m-new-centre.jpg"><figcaption>المركز الجديد جاهز، مع تنبيه الفترة التجريبية</figcaption></figure>
+  </div>
+  <div class="box info">
+    <b class="t">شو بيصير ورا الكواليس</b>
+    <ul>
+      <li>المركز الجديد بيبلّش بـ<b>فترة تجريبية 30 يوم</b> على <b>الخطة المجانية</b> (حتى 60 طالب).</li>
+      <li>بيطلع المركز بلوحتنا (إدارة المنصة)، ومنقدر نفعّله أو نوقفه أو نغيّر خطته.</li>
+      <li>في حماية من التسجيل الكتير: حد أقصى لعدد المراكز الجديدة بالساعة.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================== CENTRE PAGE -->
+<section>
+  <h2><span class="n">5</span>صفحة المركز العامة وهويته</h2>
+  <p>لكل مركز صفحة عامة على رابطه (<span class="ltr">/madaya</span> مثلًا). فيها اسم المركز وشعاره، ونبذة عنه، وأزرار: <b>سجّل في الحلقات</b>، <b>دخول المعلّمين والإدارة</b>، <b>لوحة الشرف</b>. وتحت: واتساب وإنستغرام وفيسبوك والعنوان، ومكان لملاحظات إضافية (مواعيد، إعلانات…). وبالخلفية نجمة هندسية متحركة بألوان المركز.</p>
+  <div class="shots"><figure class="shot wide" style="--w:150mm"><img style="width:150mm" src="jpg/d-madaya.jpg"><figcaption>صفحة مركز مضايا على الكمبيوتر</figcaption></figure></div>
+  <div class="side">
+    <div>
+      <h3>كيف المدير بيعدّلها</h3>
+      <p>من <b>الإدارة ← بيانات المركز والهوية</b>:</p>
+      <ul>
+        <li>اسم المركز، النبذة، الدولة، المدينة، العنوان.</li>
+        <li>رفع الشعار (PNG أو JPG أو WebP، لحد 5 ميغا، وبيتصغّر لحاله).</li>
+        <li>واتساب، إنستغرام، فيسبوك، الهاتف.</li>
+        <li><b>لوحة الألوان:</b> نيلي ورملي (الافتراضية)، كحلي وذهبي، عنّابي ورملي، رمادي هادئ.</li>
+        <li><b>ملاحظات إضافية</b> بتطلع بصفحة المركز.</li>
+      </ul>
+      <p>أي تعديل بيطلع فورًا بصفحة المركز، وبالتطبيق، وبرابط ولي الأمر. والوضع الداكن بيشتغل لحاله حسب إعداد الجوال.</p>
+    </div>
+    <figure class="shot phone"><img src="jpg/m-profile.jpg"><figcaption>الإدارة ← بيانات المركز والهوية</figcaption></figure>
+  </div>
+</section>
+
+<!-- ============================== LOGIN -->
+<section>
+  <h2><span class="n">6</span>تسجيل الدخول</h2>
+  <p>من صفحة المركز أو صفحة المنصة: زر <b>تسجيل الدخول</b>. في طريقتين:</p>
+  <div class="side">
+    <div>
+      <ol class="steps">
+        <li><b>كود بالبريد</b> (الافتراضي): بيكتب بريده، بيوصله كود من 6 أرقام، بيكتبه وبيفوت. ما في كلمة مرور ليتذكّرها.</li>
+        <li><b>كلمة مرور</b>: إذا عنده كلمة مرور (صاحب المركز اللي سجّل، أو معلّم حطّله المدير كلمة مرور).</li>
+      </ol>
+      <p>بعد الدخول بيفتح على مركزه مباشرة. إذا عضو بأكتر من مركز بيفتح على آخر مركز اشتغل فيه، وبيبدّل من فوق.</p>
+      <div class="box note"><b class="t">حالات خاصة</b>
+        <ul>
+          <li>حساب مش عضو بأي مركز: بتطلعله رسالة إنو ما إلو مركز.</li>
+          <li>مركز موقوف من إدارة المنصة: "حساب المركز موقوف حاليًا. تواصلوا مع إدارة المنصة."</li>
+        </ul>
+      </div>
+    </div>
+    <figure class="shot phone"><img src="jpg/m-login-code.jpg"><figcaption>نافذة الدخول: كود بالبريد أو كلمة مرور</figcaption></figure>
+  </div>
+</section>
+
+<!-- ============================== TEAM -->
+<section>
+  <h2><span class="n">7</span>إضافة المعلّمين والمدراء</h2>
+  <div class="side">
+    <div>
+      <h3>الطريقة 1: دعوة (الأسهل)</h3>
+      <p>من <b>الإدارة ← دعوة مدير أو معلّم</b>:</p>
+      <ol class="steps">
+        <li>بيكتب بريد المعلّم واسمه، وبيختار الدور (معلّم أو مدير).</li>
+        <li>بينبعتله إيميل دعوة، وكمان بيطلع <b>رابط الدعوة</b> ليبعته المدير على واتساب إذا بدو.</li>
+        <li>المعلّم بيفتح الرابط، بيفوت ببريده، بيضغط <b>قبول الدعوة</b>، وبيصير جوّا المركز.</li>
+      </ol>
+      <p>الدعوة صالحة 14 يوم. وإذا المعلّم إلو حساب بمركز تاني، بينضاف المركز الجديد لحسابه بدون ما يعمل حساب جديد.</p>
+      <h3>الطريقة 2: إضافة مباشرة</h3>
+      <p>من <b>الإدارة ← المحفّظون والمدراء</b>: بيكتب الاسم والبريد وكلمة مرور (8 أحرف أو أكتر)، وبيعطيها للمعلّم. ومن نفس المكان بيعدّل الاسم أو بيغيّر كلمة المرور أو بيوقف الحساب.</p>
+      <div class="box note">لحماية الحسابات: المدير ما بيقدر يغيّر بريد أو كلمة مرور معلّم إذا هالحساب عضو بمركز تاني.</div>
+    </div>
+    <figure class="shot phone"><img src="jpg/m-invites.jpg"><figcaption>دعوة مدير أو معلّم، وتحتها قائمة المحفّظين والمدراء</figcaption></figure>
+  </div>
+</section>
+
+<!-- ============================== STUDENTS -->
+<section>
+  <h2><span class="n">8</span>إدخال الطلاب</h2>
+  <p>في 4 طرق، وكل مركز بيستعمل اللي بيناسبه:</p>
+  <table>
+    <tr><th style="width:26%">الطريقة</th><th>كيف</th></tr>
+    <tr><td><b>معالج الإعداد</b></td><td>أول حلقة: كل سطر اسم طالب.</td></tr>
+    <tr><td><b>استيراد Excel أو CSV</b></td><td>من <b>الإدارة ← استيراد طلاب</b>: بينسخ الأعمدة من Excel (الاسم، الحلقة، اسم ولي الأمر، الهاتف) وبيلزقها، أو بيرفع ملف CSV. وفي حلقة افتراضية للطلاب اللي ما إلهم حلقة.</td></tr>
+    <tr><td><b>نموذج التسجيل العام</b></td><td>رابط <span class="ltr">/madaya/register</span> بينبعت للأهالي. ولي الأمر بيعبّي بيانات ابنه، وبيوصل الطلب للمدير بـ<b>طلبات التسجيل</b>، وهو بيقبله بحلقة معيّنة أو بيرفضه.</td></tr>
+    <tr><td><b>إضافة يدوية</b></td><td>من قائمة الطلاب، متل ما كان.</td></tr>
+  </table>
+  <div class="shots">
+    <figure class="shot phone sm"><img src="jpg/m-import.jpg"><figcaption>استيراد من Excel أو CSV</figcaption></figure>
+    <figure class="shot phone sm"><img src="jpg/m-register.jpg"><figcaption>نموذج التسجيل العام للأهالي</figcaption></figure>
+    <figure class="shot phone sm"><img src="jpg/m-registrations.jpg"><figcaption>طلبات التسجيل عند المدير: قبول بحلقة أو رفض</figcaption></figure>
+  </div>
+  <div class="box info">حدود الخطة بتنطبق على كل الطرق. مثلًا بالخطة المجانية، الطالب رقم 61 ما بينضاف، وبتطلع رسالة إنو المركز وصل للحد الأقصى.</div>
+</section>
+
+<!-- ============================== TEACHER DAILY -->
+<section>
+  <h2><span class="n">9</span>شغل المعلّم اليومي</h2>
+  <p>التبويبات تحت الهيدر: <b>الطلاب</b>، <b>التلقين</b>، <b>التقارير</b>، <b>المتفوقون</b>. والمدير عنده كمان: <b>اللوحة</b>، <b>الإدارة</b>، <b>سجل المحذوفات</b>، <b>سجل التعديلات</b>.</p>
+  <h3>الطلاب وبطاقة الطالب</h3>
+  <ul>
+    <li><b>تحضير اليوم:</b> حضور وغياب وتأخير لكل الحلقة بضغطة.</li>
+    <li><b>درس اليوم</b> للحلقة، و<b>نجوم الحفظ</b> بالشهر.</li>
+    <li><b>بطاقة الطالب</b> فيها أقسام: الحفظ، المراجعة، التلاوة، التلقين، العربية (كتب ومستويات)، التربية (ملاحظات)، الاختبارات، والخريطة (خريطة المصحف بشو حفظ).</li>
+    <li>من البطاقة: <b>نسخ رابط ولي الأمر</b> أو <b>إرساله على واتساب</b>، تعديل بيانات الطالب، أرشفته أو حذفه (بيروح لسجل المحذوفات وبينرجع).</li>
+  </ul>
+  <div class="shots">
+    <figure class="shot phone sm"><img src="jpg/m-app-list.jpg"><figcaption>قائمة الطلاب مع الفلاتر</figcaption></figure>
+    <figure class="shot phone sm"><img src="jpg/m-student-card.jpg"><figcaption>بطاقة الطالب: الحضور والأقسام</figcaption></figure>
+    <figure class="shot phone sm"><img src="jpg/m-student-card2.jpg"><figcaption>البطاقة: رابط ولي الأمر والسجل</figcaption></figure>
+  </div>
+</section>
+<section>
+  <h3 style="margin-top:0">التلقين</h3>
+  <p>جلسة تلقين لحلقة كاملة: بيختار الحلقة والتاريخ ومن أي سورة وآية لوين، وبيعلّم مين من الطلاب حضر الجلسة.</p>
+  <h3>التقارير والإرسال لأولياء الأمور</h3>
+  <p>تقرير يومي أو أسبوعي أو شهري لكل الطلاب أو لحلقة: نسبة الحضور، اللي سمّعوا، ملخّص الحفظ. منه <b>إرسال تقارير الحلقة</b> لأولياء الأمور على واتساب (رسالة جاهزة لكل طالب)، وتصدير <b>PDF أو طباعة</b> أو <b>Excel أو CSV</b>.</p>
+  <h3>المتفوقون ولوحة الشرف</h3>
+  <p>ترتيب أسبوعي أو شهري حسب نسب بيحدّدها المدير (الحفظ، الحضور، التلاوة والمراجعة، التربية والسلوك، الاختبارات، الدورات). و<b>لوحة الشرف العامة</b> (<span class="ltr">/madaya/honor</span>) بتعرض المتفوقين والشهادات الجديدة، والمدير بيقرّر إذا بتكون ظاهرة للعامة.</p>
+  <div class="shots">
+    <figure class="shot phone sm"><img src="jpg/m-talqeen.jpg"><figcaption>جلسة تلقين</figcaption></figure>
+    <figure class="shot phone sm"><img src="jpg/m-reports.jpg"><figcaption>التقارير والإرسال والتصدير</figcaption></figure>
+    <figure class="shot phone sm"><img src="jpg/m-ranking.jpg"><figcaption>المتفوقون ونسب الترتيب</figcaption></figure>
+  </div>
+</section>
+
+<!-- ============================== ADMIN -->
+<section>
+  <h2><span class="n">10</span>أدوات المدير</h2>
+  <table>
+    <tr><th style="width:24%">التبويب</th><th>فيه</th></tr>
+    <tr><td><b>اللوحة</b></td><td>عدد الطلاب والحضور بالأسبوع وطلبات التسجيل الجديدة والحلقات اللي لسا ما سجّلت تقارير اليوم، وجدول الحلقات وأعدادها، وتنبيه الغياب المتكرر.</td></tr>
+    <tr><td><b>الإدارة</b></td><td>بيانات المركز والهوية، الدعوات، المحفّظون والمدراء، الحلقات، كتب العربية، استيراد الطلاب، طلبات التسجيل، إعدادات لوحة الشرف وتنبيه الغياب.</td></tr>
+    <tr><td><b>سجل التعديلات</b></td><td>كل إضافة وتعديل وحذف: مين عمله، وإيمتى، وشو كان قبل وبعد. وبيتفلتر حسب المستخدم ونوع البيانات والتاريخ.</td></tr>
+    <tr><td><b>سجل المحذوفات</b></td><td>أي شي انحذف (طالب، حلقة…) بيروح لهون وبينرجع بضغطة، أو بينحذف نهائيًا.</td></tr>
+  </table>
+  <div class="shots">
+    <figure class="shot phone sm"><img src="jpg/m-dashboard.jpg"><figcaption>اللوحة</figcaption></figure>
+    <figure class="shot phone sm"><img src="jpg/m-manage.jpg"><figcaption>الإدارة: الحلقات والاستيراد</figcaption></figure>
+    <figure class="shot phone sm"><img src="jpg/m-audit.jpg"><figcaption>سجل التعديلات</figcaption></figure>
+  </div>
+</section>
+
+<!-- ============================== GUARDIAN + MOBILE -->
+<section>
+  <h2><span class="n">11</span>ولي الأمر</h2>
+  <ul>
+    <li>لكل طالب <b>رابط خاص</b> بيبعته المعلّم من بطاقة الطالب (نسخ أو واتساب).</li>
+    <li>ولي الأمر بيفتحه بدون حساب، وبيشوف حضور ابنه وحفظه وملاحظاته، <b>باسم المركز وشعاره</b>.</li>
+    <li>المعلّم بيقدر <b>يجدّد الرابط</b>، فالرابط القديم بيوقف يشتغل (إذا انتشر بالغلط مثلًا).</li>
+    <li>ولي الأمر هو كمان اللي بيعبّي <b>نموذج التسجيل العام</b> لابنه.</li>
+  </ul>
+
+  <h2 style="margin-top:9mm"><span class="n">12</span>الجوال وبدون إنترنت والإشعارات</h2>
+  <ul>
+    <li><b>تطبيق على الشاشة الرئيسية:</b> من المتصفح "إضافة إلى الشاشة الرئيسية"، فبيصير متل التطبيق بأيقونة. على أندرويد وآيفون.</li>
+    <li><b>بدون إنترنت:</b> المعلّم بيسجّل حضور وتسميع وهو بلا نت، وبتنبعت التغييرات لحالها لما يرجع النت.</li>
+    <li><b>الإشعارات:</b> كل مستخدم بيقدر يفعّل إشعارات على جهازه. البنية جاهزة، وبيضل تفعيل مفاتيح الإشعارات بالموقع الحقيقي، وبعدين تذكيرات تلقائية (غياب، تقارير).</li>
+    <li><b>تطبيق بالمتاجر (React Native):</b> مش مبني هلق. كتبنا ملاحظة بشو بيحتاج: حساب Google Play بـ25$ مرة وحدة، وApple بـ99$ بالسنة، والمراجعة عادة من يوم لـ3 أيام. الخادم نفسه جاهز إلو بدون تعديل.</li>
+  </ul>
+</section>
+
+<!-- ============================== SUPER + PLANS -->
+<section>
+  <h2><span class="n">13</span>لوحة إدارة المنصة والخطط</h2>
+  <p>لوحة إلنا نحنا (<span class="ltr">/super</span>)، بتطلع بس لحسابات إدارة المنصة. فيها كل المراكز: الاسم، الرابط، الدولة، عدد الطلاب والأعضاء، الحالة، الخطة، تاريخ التسجيل. ومنها منفعّل المركز أو منوقفه أو منغيّر خطته.</p>
+  <div class="shots"><figure class="shot wide"><img style="width:150mm" src="jpg/d-super.jpg"><figcaption>لوحة إدارة المنصة</figcaption></figure></div>
+  <div class="two">
+    <div>
+      <h3>الخطط (حدود عدد الطلاب)</h3>
+      <table>
+        <tr><th>الخطة</th><th>الطلاب</th></tr>
+        <tr><td>المجانية <span class="ltr">FREE</span></td><td>حتى 60</td></tr>
+        <tr><td>الأساسية <span class="ltr">BASIC</span></td><td>حتى 400</td></tr>
+        <tr><td>الاحترافية <span class="ltr">PRO</span></td><td>بلا حد (مضايا عليها)</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>حالات المركز</h3>
+      <table>
+        <tr><th>الحالة</th><th>المعنى</th></tr>
+        <tr><td>تجريبي</td><td>أول 30 يوم بعد التسجيل</td></tr>
+        <tr><td>فعّال</td><td>مفعّل من قبلنا</td></tr>
+        <tr><td>موقوف</td><td>ما حدا بيقدر يفوت، وصفحته العامة بتختفي</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="box note"><b class="t">لسا مش مربوط</b>الدفع الإلكتروني. هلق تغيير الخطة يدوي من لوحتنا. وانتهاء الفترة التجريبية بيطلع تنبيه بس، وما بيوقف المركز لحاله. الأسعار وطريقة الدفع <span class="tag sand">قرار للتيم</span></div>
+</section>
+
+<!-- ============================== SECURITY -->
+<section>
+  <h2><span class="n">14</span>الأمان وعزل البيانات</h2>
+  <p class="lead">أهم شي بمنصة فيها أكتر من مركز إنو ولا مركز يشوف بيانات غيره. وهاد مضمون جوّا قاعدة البيانات نفسها، مش بس بالشاشات.</p>
+  <ul>
+    <li><b>كل سجل مختوم بمركزه:</b> كل طالب وحلقة وتسميع وحضور… إلو رقم مركزه.</li>
+    <li><b>القاعدة نفسها بترفض:</b> أي طلب بيرجعله بس بيانات المركز اللي المستخدم فاتح عليه. حتى لو صار خطأ بشاشة أو حدا جرّب يتلاعب بالطلبات، ما بيطلع صف من مركز تاني.</li>
+    <li><b>ما في ربط بين مراكز:</b> ما بينفع تحط طالب من مركز بحلقة من مركز تاني، حتى لو حدا عرف رقمه.</li>
+    <li><b>صلاحيات المدير لكل مركز لحاله:</b> مدير مضايا ما إلو أي صلاحية بالدوحة.</li>
+    <li><b>الشعار:</b> صور بس (بدون SVG)، ولحد 5 ميغا.</li>
+    <li><b>حماية من الإزعاج:</b> حدود لعدد المراكز الجديدة بالساعة، وعدد طلبات التسجيل من نفس الرقم.</li>
+  </ul>
+  <div class="box ok"><b class="t">مفحوص</b>
+    <ul>
+      <li><b>95 فحص آلي</b> على نسخة من قاعدة البيانات الحقيقية (بنيتها بلا بيانات). بتتأكد إنو بيانات مضايا انتقلت كلها، وإنو كل محاولة وصول بين مركزين بتفشل (قراءة، كتابة، دوال المدير، الروابط)، والدعوات، والمستخدم بمركزين، والإيقاف، وحدود الخطط. <b>كلهم ناجحين.</b></li>
+      <li><b>17 فحص بالمتصفح</b> على النسخة التجريبية: تسجيل مركز، المعالج، الدعوة، التبديل بين المراكز، نموذج التسجيل، تعديل صفحة المركز… ومنها فحوصات على مقاس الجوال.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================== STATUS -->
+<section>
+  <h2><span class="n">15</span>وين وصلنا وشو الخطوة الجاية</h2>
+  <table style="font-size:9.2pt">
+    <tr><th style="width:44%">البند</th><th style="width:16%">الحالة</th><th>ملاحظة</th></tr>
+    <tr><td>صفحة المركز: نبذة وشعار، وقابلة للتعديل</td><td><span class="tag ok">جاهز</span></td><td></td></tr>
+    <tr><td>الهوية الجديدة و4 لوحات ألوان والوضع الداكن</td><td><span class="tag ok">جاهز</span></td><td>الألوان قابلة للتغيير</td></tr>
+    <tr><td>تعدد المراكز وعزل البيانات</td><td><span class="tag ok">جاهز</span></td><td>95 فحص</td></tr>
+    <tr><td>سجّل مركزك ومعالج الإعداد</td><td><span class="tag ok">جاهز</span></td><td></td></tr>
+    <tr><td>الدعوات واستيراد الطلاب</td><td><span class="tag ok">جاهز</span></td><td></td></tr>
+    <tr><td>لوحة إدارة المنصة والخطط</td><td><span class="tag ok">جاهز</span></td><td>بدون دفع</td></tr>
+    <tr><td>تطبيق على الجوال وبدون إنترنت</td><td><span class="tag ok">جاهز</span></td><td></td></tr>
+    <tr><td>الإشعارات</td><td><span class="tag warn">جزئي</span></td><td>بدها مفاتيح بالموقع الحقيقي</td></tr>
+    <tr><td>واجهة باللغة الإنجليزية</td><td><span class="tag warn">جزئي</span></td><td>صفحة المنصة بس</td></tr>
+    <tr><td>الدفع الإلكتروني</td><td><span class="tag sand">لاحقًا</span></td><td></td></tr>
+    <tr><td>إرسال واتساب تلقائي</td><td><span class="tag sand">لاحقًا</span></td><td>هلق برسائل جاهزة من جوال المعلّم</td></tr>
+    <tr><td>تطبيق بالمتاجر</td><td><span class="tag sand">لاحقًا</span></td><td>الخادم جاهز إلو</td></tr>
+  </table>
+
+  <h3>قرارات بدها حسم من التيم</h3>
+  <ol>
+    <li><b>اسم المنصة:</b> سمّيناها مؤقتًا "منصة حلقات".</li>
+    <li><b>دومين المنصة:</b> منضل على <span class="ltr">madayacentre.com</span> ولا منشتري دومين مستقل؟</li>
+    <li><b>لوحة الألوان الافتراضية:</b> هلق نيلي ورملي.</li>
+    <li><b>الأسعار والخطط وطريقة الدفع.</b></li>
+    <li><b>بريد الإرسال (SMTP):</b> لإيميلات التأكيد والدعوات من اسمنا.</li>
+  </ol>
+
+  <h3>خطوات الإطلاق على الموقع الحقيقي</h3>
+  <ol class="steps">
+    <li>نسخة احتياطية جديدة من قاعدة البيانات.</li>
+    <li>تطبيق تحديث قاعدة البيانات (وقت ما يكون في معلّمين شغالين). مضايا بتصير أول مركز تلقائيًا، وما بيضيع ولا سجل.</li>
+    <li>تفعيل التسجيل وتأكيد البريد بإعدادات Supabase.</li>
+    <li>إضافة مفاتيح الإشعارات بإعدادات Netlify.</li>
+    <li>نشر النسخة الجديدة، وتجربة مضايا من حساب حقيقي.</li>
+  </ol>
+  <div class="box info"><b class="t">والرجوع مضمون</b>إذا صار أي شي، منرجّع النسخة الاحتياطية والنسخة القديمة من البرنامج. التفاصيل التقنية كلها بملف <span class="ltr">docs/SAAS.md</span> بالمستودع.</div>
+</section>
+
+</body>
+</html>
