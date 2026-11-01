@@ -12,6 +12,7 @@ import ExportExcel from "@/components/ExportExcel";
 import CenterProfile from "@/components/center/CenterProfile";
 import Invites from "@/components/center/Invites";
 import ImportStudents from "@/components/center/ImportStudents";
+import DevCredit from "@/components/landing/DevCredit";
 
 // Admin-only actions (spec §5.4). These need a connection: they write straight to Supabase
 // (RLS re-checks is_admin()) and then refresh the local copy.
@@ -32,6 +33,7 @@ export default function Manage() {
       <CenterSettings />
       <HonorSettings />
       <ExportExcel />
+      <DevCredit />
     </section>
   );
 }
