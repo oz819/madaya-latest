@@ -35,7 +35,7 @@ async function boot(): Promise<PGlite> {
 // database is snapshotted to Netlify Blobs after every change, and an instance that is behind
 // loads the latest snapshot before answering. Locally (no Blobs) it simply stays in memory.
 // Bump SNAPSHOT to start the demo over (e.g. after a schema change).
-const SNAPSHOT = "db-2026-11-01-clean";
+const SNAPSHOT = "db-2026-11-01-v3";
 
 async function blobStore(): Promise<Store | null> {
   if (g.__demoStore !== undefined) return g.__demoStore;
