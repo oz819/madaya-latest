@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { CenterMark } from "@/components/center/Geo";
 import { PALETTES, applyPalette, type Palette } from "@/lib/center";
@@ -11,6 +11,7 @@ type Form = {
   about: string;
   logo_url: string | null;
   palette: Palette;
+  primary_color: string;
   country: string;
   city: string;
   contact_phone: string;
@@ -43,18 +44,22 @@ export default function CenterProfile() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    // A late answer (a slow network, or React running the effect twice) must not undo edits.
+    let stale = false;
     supabase
       .from("centers")
       .select("*")
       .eq("id", center.id)
       .maybeSingle()
       .then(({ data, error }) => {
+        if (stale) return;
         if (error || !data) return setError(error?.message || "تعذّر تحميل بيانات المركز");
         const v: Form = {
           name: data.name,
           about: data.about ?? "",
           logo_url: data.logo_url,
           palette: (data.palette as Palette) || "indigo",
+          primary_color: data.primary_color ?? "",
           country: data.country ?? "",
           city: data.city ?? "",
           contact_phone: data.contact_phone ?? "",
@@ -68,10 +73,25 @@ export default function CenterProfile() {
         setSaved(v);
         setF(v);
       });
+    return () => {
+      stale = true;
+    };
   }, [supabase, center.id]);
+
+  // Colours are previewed on the whole app while choosing; leaving without saving puts back the
+  // centre's saved look (useApp's center is refreshed after a save).
+  const savedLook = useRef(center);
+  useEffect(() => {
+    savedLook.current = center;
+  }, [center]);
+  useEffect(() => () => applyPalette(savedLook.current), []);
 
   if (!f) return <div className="card">{error ? <p className="error-text">{error}</p> : <p className="muted">جارٍ التحميل...</p>}</div>;
   const dirty = JSON.stringify(f) !== JSON.stringify(saved);
+  const preview = (next: Form) => {
+    setF(next);
+    applyPalette({ palette: next.palette, primary_color: next.primary_color || null });
+  };
   const set = (k: keyof Form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value });
 
   async function pickLogo(e: React.ChangeEvent<HTMLInputElement>) {
@@ -100,6 +120,7 @@ export default function CenterProfile() {
         about: clean(f.about),
         logo_url: f.logo_url,
         palette: f.palette,
+        primary_color: /^#[0-9a-fA-F]{6}$/.test(f.primary_color) ? f.primary_color.toLowerCase() : null,
         country: clean(f.country),
         city: clean(f.city),
         contact_phone: clean(f.contact_phone),
@@ -163,10 +184,7 @@ export default function CenterProfile() {
             type="button"
             key={p.id}
             className={`palette-opt${f.palette === p.id ? " on" : ""}`}
-            onClick={() => {
-              setF({ ...f, palette: p.id });
-              applyPalette({ palette: p.id });
-            }}
+            onClick={() => preview({ ...f, palette: p.id, primary_color: "" })}
           >
             <i>
               {p.colors.map((c) => (
@@ -176,6 +194,33 @@ export default function CenterProfile() {
             <span className="small">{p.label}</span>
           </button>
         ))}
+      </div>
+
+      <div className="color-pick">
+        <label style={{ margin: 0 }} htmlFor="cp-color">
+          أو لون خاص بالمركز
+        </label>
+        <input
+          id="cp-color"
+          type="color"
+          value={f.primary_color || (PALETTES.find((p) => p.id === f.palette)?.colors[0] ?? "#2f3e9e")}
+          onChange={(e) => preview({ ...f, primary_color: e.target.value })}
+        />
+        {f.primary_color ? (
+          <button type="button" className="link" onClick={() => preview({ ...f, primary_color: "" })}>
+            الرجوع لألوان اللوحة
+          </button>
+        ) : (
+          <span className="small muted">اختياري — يغيّر لون الأزرار والعناوين</span>
+        )}
+      </div>
+
+      <div className="brand-preview" aria-label="معاينة">
+        <CenterMark name={f.name || center.name} logo={f.logo_url} size={40} />
+        <b>{f.name || center.name}</b>
+        <button type="button" tabIndex={-1}>زر</button>
+        <span className="badge">شارة</span>
+        <span className="small muted">هكذا تظهر في التطبيق وصفحات الأهل</span>
       </div>
 
       <div style={{ marginTop: 14 }}>
@@ -193,7 +238,7 @@ export default function CenterProfile() {
             className="secondary"
             onClick={() => {
               setF(saved);
-              applyPalette({ palette: saved?.palette });
+              applyPalette({ palette: saved?.palette, primary_color: saved?.primary_color || null });
             }}
           >
             تراجع

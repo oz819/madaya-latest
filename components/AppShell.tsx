@@ -324,18 +324,12 @@ export default function AppShell() {
         ))}
       </nav>
 
-      {profile.role === "ADMIN" && ctx?.center && (!ctx.center.onboarded || ctx.center.status === "TRIAL") && (
+      {profile.role === "ADMIN" && ctx?.center && !ctx.center.onboarded && (
         <div className="plan-banner no-print">
-          <span>
-            {!ctx.center.onboarded
-              ? "أكمل إعداد مركزك: الشعار والألوان وأول حلقة وأول معلّم."
-              : `فترة تجربة مجانية${trialDays(ctx.center.trial_ends_at)} — الخطة المجانية حتى 60 طالبًا.`}
-          </span>
-          {!ctx.center.onboarded && (
-            <Link href="/onboarding" className="btn" style={{ padding: "6px 12px" }}>
-              إكمال الإعداد
-            </Link>
-          )}
+          <span>أكمل إعداد مركزك: الشعار والألوان وأول حلقة وطلابها وأول معلّم.</span>
+          <Link href="/onboarding" className="btn" style={{ padding: "6px 12px" }}>
+            إكمال الإعداد
+          </Link>
         </div>
       )}
 
@@ -384,10 +378,4 @@ function hijriToday(): string {
   } catch {
     return "";
   }
-}
-
-function trialDays(end: string | null): string {
-  if (!end) return "";
-  const d = Math.ceil((new Date(end).getTime() - Date.now()) / 86400000);
-  return d > 0 ? `: باقي ${d} يومًا` : ": انتهت";
 }

@@ -100,7 +100,7 @@ async function main() {
   ok(!!B && created.slug === "doha", "create_center أنشأ المركز");
   const ctxB = (await one(db, OWNER_B, "select public.my_context() c")).c;
   ok(ctxB.center.id === B && ctxB.membership.role === "ADMIN" && ctxB.membership.is_owner, "صاحب البريد صار مدير المركز (Owner)");
-  ok(ctxB.center.status === "TRIAL" && ctxB.center.plan === "FREE", "المركز الجديد في فترة تجربة على الخطة المجانية");
+  ok(ctxB.center.status === "ACTIVE" && ctxB.center.trial_ends_at === null, "المركز الجديد فعّال مباشرة بلا فترة تجربة");
   ok(!!(await fails(db, OWNER_B, `select public.create_center('x', 'madaya', 'a', 'b', 'c')`)), "لا يمكن أخذ رابط مستخدم");
   ok(!!(await fails(db, OWNER_B, `select public.create_center('x', 'login', 'a', 'b', 'c')`)), "لا يمكن أخذ رابط محجوز");
   await db.exec(`insert into auth.users (id, email, email_confirmed_at) values ('${U(9)}', 'unconfirmed@test.test', null)`);
@@ -204,14 +204,14 @@ async function main() {
   await as(db, SUPER, `select public.super_set_center('${B}', 'ACTIVE')`);
   ok((await rows(db, OWNER_B, "select * from public.students")).length === 1, "وبعد التفعيل يرجع كل شيء");
 
-  console.log("حدود الخطة المجانية");
+  console.log("مجاني بلا حدود");
   let limitErr = "";
-  for (let i = 0; i < 61 && !limitErr; i++) {
+  for (let i = 0; i < 70 && !limitErr; i++) {
     limitErr = (await fails(db, OWNER_B, `insert into public.students (name, circle_id) values ('طالب ${i}', '${U(110)}')`)) || "";
   }
-  if (!/الأقصى/.test(limitErr)) console.log("    →", limitErr);
-  ok(/الأقصى/.test(limitErr), "الخطة المجانية تتوقف عند 60 طالبًا");
-  ok(!(await fails(db, ADMIN, `insert into public.students (name, circle_id) values ('طالب جديد', '${U(100)}')`)), "مضايا (PRO) بلا حد");
+  if (limitErr) console.log("    →", limitErr);
+  ok(!limitErr, "لا حد لعدد الطلاب (70 طالبًا في المركز الجديد)");
+  ok(!!(await fails(db, OWNER_B, `update public.centers set status = 'TRIAL' where id = '${B}'`)), "المركز لا يغيّر حالته بنفسه");
 
   console.log("سجل التعديلات");
   const auditB = await rows(db, OWNER_B, "select * from public.audit_log");
@@ -223,6 +223,49 @@ async function main() {
   ok((await rows(db, TEACHER, "select * from public.push_subscriptions")).length === 0, "ولا يراه غيره ولو من نفس المركز");
   ok((await rows(db, OWNER_B, "select * from public.push_subscriptions")).length === 0, "ولا مركز آخر");
   ok(!!(await fails(db, OWNER_B, `insert into public.push_subscriptions (endpoint, p256dh, auth, user_id) values ('https://push.example/b', 'k', 'a', '${ADMIN}')`)), "لا أحد يسجّل اشتراكًا باسم غيره");
+
+  console.log("طلبات التسجيل: الحماية والمرونة");
+  const reqB = () => rows(db, OWNER_B, "select * from public.registration_requests order by created_at");
+  const nB = (await reqB()).length;
+  await as(db, null, `select public.submit_registration('  سارة\u200f   أحمد ', 9, 'FEMALE', '<b>أبو سارة</b>', '+974 5555-1234', 'جزء عم', null, 'doha')`);
+  let r = (await reqB()).at(-1);
+  ok((await reqB()).length === nB + 1 && r.student_name === "سارة أحمد", "الاسم يُنظَّف من الرموز الخفية والمسافات");
+  ok(r.guardian_phone === "97455551234", "الرقم يُوحَّد على الخادم (+974 5555-1234)");
+  ok(!/[<>]/.test(r.guardian_name), "لا وسوم HTML في اسم ولي الأمر");
+  await as(db, null, `select public.submit_registration('سارة أحمد', 9, 'FEMALE', null, '0097455551234', null, null, 'doha')`);
+  ok((await reqB()).length === nB + 1, "الطلب المكرر (نفس الطالب والرقم) لا يُسجَّل مرتين");
+  ok(/روابط/.test(await fails(db, null, `select public.submit_registration('علي', 9, 'MALE', null, '97455551299', 'https://spam.example', null, 'doha')`)), "لا روابط في الطلب");
+  ok(!!(await fails(db, null, `select public.submit_registration('علي123', 9, 'MALE', null, '97455551299', null, null, 'doha')`)), "اسم الطالب حروف فقط");
+  ok(!!(await fails(db, null, `select public.submit_registration('علي', 9, 'MALE', null, '12', null, null, 'doha')`)), "رقم قصير مرفوض");
+  ok(!!(await fails(db, null, `select public.submit_registration('علي', 9, 'OTHER', null, '97455551299', null, null, 'doha')`)), "قسم غير معروف مرفوض");
+  ok(!!(await fails(db, null, `select public.submit_registration('علي', 9, 'MALE', null, '97455551299', null, null, 'no-such')`)), "مركز غير موجود مرفوض");
+  ok(!!(await fails(db, null, `insert into public.registration_requests (student_name, section, guardian_phone, center_id) values ('x y', 'MALE', '97455551299', '${B}')`)), "الزائر لا يكتب في الجدول مباشرة");
+  ok(!!(await fails(db, OWNER_B, `update public.registration_requests set status = 'ACCEPTED'`)), "ولا المدير يغيّر الحالة إلا عبر القبول/الرفض");
+  ok((await rows(db, null, "select 1 from public.registration_requests").catch(() => [])).length === 0, "الزائر لا يقرأ الطلبات");
+  await as(db, OWNER_B, `update public.centers set registrations_open = false where id = '${B}'`);
+  ok((await one(db, null, "select public.public_center('doha') c")).c.registrations_open === false, "المدير يغلق التسجيل وتعرف الصفحة العامة");
+  ok(/مغلق/.test(await fails(db, null, `select public.submit_registration('خالد', 9, 'MALE', null, '97455551288', null, null, 'doha')`)), "والنموذج يرفض وهو مغلق");
+  await as(db, OWNER_B, `update public.centers set registrations_open = true where id = '${B}'`);
+  await as(db, null, `select public.submit_registration('حمزة', 9, 'MALE', null, '97455551277', null, null, 'doha')`);
+  const hamza = (await reqB()).at(-1);
+  await as(db, OWNER_B, `update public.circles set section = 'FEMALE' where id = '${U(110)}'`);
+  ok(/قسم/.test(await fails(db, OWNER_B, `select public.admin_accept_registration('${hamza.id}', '${U(110)}')`)), "لا يُقبل طالب في حلقة من القسم الآخر");
+  await as(db, OWNER_B, `update public.circles set section = null where id = '${U(110)}'`);
+  ok(!(await fails(db, OWNER_B, `select public.admin_accept_registration('${hamza.id}', '${U(110)}')`)), "ويُقبل في حلقة بلا قسم");
+  ok(!!(await fails(db, OWNER_B, `select public.admin_accept_registration('${hamza.id}', '${U(110)}')`)), "ولا يُقبل الطلب مرتين");
+
+  console.log("إنشاء حلقة مع طلابها دفعة واحدة");
+  const made = (await one(db, OWNER_B, `select public.admin_create_circle('حلقة عمر', 'MALE', '["يوسف علي", " يوسف  علي ", "", "x", "زيد\u202eعمرو", "بلال"]'::jsonb) c`)).c;
+  const kids = await rows(db, OWNER_B, `select name from public.students where circle_id = '${made.id}' order by created_at`);
+  ok(made.students === 3 && kids.length === 3, "تُحذف الأسطر الفارغة والقصيرة والمكررة (3 من 6)");
+  ok(kids.every((k) => !/[\u202e]/.test(k.name)), "وتُنظَّف الأسماء");
+  ok(/يوجد حلقة/.test(await fails(db, OWNER_B, `select public.admin_create_circle('حلقة عمر')`)), "اسم حلقة مكرر مرفوض برسالة واضحة");
+  const before = (await rows(db, OWNER_B, "select id from public.circles")).length;
+  ok(!!(await fails(db, OWNER_B, `select public.admin_create_circle('حلقة كبيرة', null, (select jsonb_agg('اسم ' || g) from generate_series(1, 301) g))`)), "أكثر من 300 اسم مرفوض");
+  ok((await rows(db, OWNER_B, "select id from public.circles")).length === before, "ولا تبقى حلقة نصف منشأة");
+  ok(!!(await fails(db, TEACHER, `select public.admin_create_circle('حلقة المعلم')`)), "المعلم لا ينشئ حلقات");
+  ok(!!(await fails(db, null, `select public.admin_create_circle('حلقة الزائر')`)), "ولا الزائر");
+  ok((await rows(db, ADMIN, `select * from public.circles where name = 'حلقة عمر'`)).length === 0, "حلقة المركز لا تظهر لمركز آخر");
 
   console.log(`\n${passed} ناجح، ${failed} فاشل`);
   process.exit(failed ? 1 : 0);

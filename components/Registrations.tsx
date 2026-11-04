@@ -34,7 +34,32 @@ export default function Registrations() {
   const [error, setError] = useState("");
   const [circleFor, setCircleFor] = useState<Record<string, string>>({});
   const [showDone, setShowDone] = useState(false);
-  const circles = s.all("circles").filter((c) => c.active);
+  const [open, setOpen] = useState<boolean | null>(null);
+  const circles = s.all("circles").filter((c) => c.active && !c.deleted_at);
+
+  useEffect(() => {
+    let stale = false;
+    supabase
+      .from("centers")
+      .select("registrations_open")
+      .eq("id", center.id)
+      .maybeSingle()
+      .then(({ data }) => !stale && setOpen((v) => v ?? data?.registrations_open ?? true));
+    return () => {
+      stale = true;
+    };
+  }, [supabase, center.id]);
+
+  async function toggleOpen(v: boolean) {
+    setError("");
+    setOpen(v);
+    const { error } = await supabase.from("centers").update({ registrations_open: v }).eq("id", center.id);
+    if (error) {
+      setOpen(!v);
+      return setError(error.message);
+    }
+    showToast(v ? "صار نموذج التسجيل يستقبل الطلبات" : "تم إغلاق نموذج التسجيل");
+  }
 
   async function load() {
     const { data, error } = await supabase.from("registration_requests").select("*").order("created_at", { ascending: false }).limit(200);
@@ -68,10 +93,11 @@ export default function Registrations() {
     load();
   }
 
-  // Halaqat of the requested section first; all of them if the section has none.
+  // Halaqat that can take the request: of its section, or with no section (the database checks too).
   function circlesOf(r: Request) {
-    const same = circles.filter((c) => c.section === r.section);
-    return (same.length ? same : circles).sort((a, b) => a.name.localeCompare(b.name, "ar"));
+    return circles
+      .filter((c) => !c.section || c.section === r.section)
+      .sort((a, b) => Number(!!b.section) - Number(!!a.section) || a.name.localeCompare(b.name, "ar"));
   }
 
   const pending = rows?.filter((r) => r.status === "PENDING") ?? [];
@@ -91,6 +117,12 @@ export default function Registrations() {
           نسخ
         </button>
       </p>
+      {open !== null && (
+        <label className="switch-row reg-toggle">
+          <input type="checkbox" checked={open} onChange={(e) => toggleOpen(e.target.checked)} />
+          {open ? "النموذج يستقبل طلبات جديدة" : "النموذج مغلق — يرى الأهل «التسجيل مغلق حاليًا»"}
+        </label>
+      )}
       {error && <p className="error-text">{error}</p>}
       {rows && !pending.length && <p className="muted">لا توجد طلبات جديدة.</p>}
       <ul className="reg-list">
@@ -98,6 +130,9 @@ export default function Registrations() {
           <li key={r.id}>
             <RequestInfo r={r} />
             <div className="reg-actions">
+              {!circlesOf(r).length ? (
+                <span className="small muted">لا توجد حلقة لقسم {SECTION_LABEL[r.section as Section] ?? ""} — أنشئها من «الحلقات» أولًا.</span>
+              ) : (
               <select
                 aria-label={`حلقة ${r.student_name}`}
                 value={circleFor[r.id] ?? circlesOf(r)[0]?.id ?? ""}
@@ -109,7 +144,10 @@ export default function Registrations() {
                   </option>
                 ))}
               </select>
-              <button onClick={() => accept(r)}>قبول</button>
+              )}
+              <button onClick={() => accept(r)} disabled={!circlesOf(r).length}>
+                قبول
+              </button>
               <button className="danger" onClick={() => reject(r)}>
                 رفض
               </button>

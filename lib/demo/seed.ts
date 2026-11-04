@@ -28,7 +28,7 @@ export function seedSql(): string {
   out.push(`insert into public.centers (id, slug, name, country, city, about, whatsapp, contact_email, palette, status, plan, onboarded, owner_id, trial_ends_at)
     values (${q(DOHA)}, 'doha', 'مركز الدوحة لتحفيظ القرآن (تجريبي)', 'قطر', 'الدوحة',
       'مركز تجريبي ثانٍ على المنصة لتجربة عزل البيانات بين المراكز: لا يرى طلاب مضايا ولا ترى مضايا طلابه.',
-      '97455555555', 'info@doha.demo', 'navy', 'TRIAL', 'FREE', true, ${q(u.doha.id)}, now() + interval '30 days');
+      '97455555555', 'info@doha.demo', 'navy', 'ACTIVE', 'FREE', true, ${q(u.doha.id)}, null);
     insert into public.ranking_settings (center_id) values (${q(DOHA)});`);
   out.push(`insert into public.app_users (id, name, current_center_id) values
     (${q(u.admin.id)}, ${q(u.admin.name)}, ${q(MADAYA)}), (${q(u.teacher.id)}, ${q(u.teacher.name)}, ${q(MADAYA)}),

@@ -7,9 +7,10 @@ import DevCredit from "@/components/landing/DevCredit";
 import { CenterMark, GeoStar } from "@/components/center/Geo";
 import { PALETTES, SLUG_RE, applyPalette, slugify, type MyContext, type Palette, type PendingCenter } from "@/lib/center";
 import { logoDataUrl } from "@/lib/logo";
+import CircleForm, { type CreatedCircle } from "@/components/CircleForm";
 
 type Step = 0 | 1 | 2 | 3;
-const STEPS = ["المركز", "الشعار والألوان", "أول حلقة", "أول معلّم"];
+const STEPS = ["المركز", "الشعار والألوان", "الحلقات والطلاب", "أول معلّم"];
 
 // معالج الإعداد بعد "سجّل مركزك": 1) create the centre (owner = this login), 2) logo + colours,
 // 3) the first halaqa and its students, 4) invite the first teacher. Every step can be skipped and
@@ -26,7 +27,8 @@ export default function Onboarding() {
   const [c, setC] = useState<PendingCenter>({ name: "", slug: "", country: "", city: "", owner: "" });
   const [logo, setLogo] = useState<string | null>(null);
   const [palette, setPalette] = useState<Palette>("indigo");
-  const [circle, setCircle] = useState({ name: "", section: "MALE", students: "" });
+  const [created, setCreated] = useState<CreatedCircle[]>([]);
+  const [moreCircles, setMoreCircles] = useState(false);
   const [teacher, setTeacher] = useState({ email: "", name: "" });
   const [inviteLink, setInviteLink] = useState("");
 
@@ -91,28 +93,6 @@ export default function Onboarding() {
     setBusy(false);
     if (error) return setError(error.message);
     setStep(2);
-  }
-
-  async function saveCircle() {
-    setError("");
-    const name = circle.name.trim();
-    if (!name) return setStep(3);
-    setBusy(true);
-    const { data, error } = await supabase.from("circles").insert({ name, section: circle.section }).select("id").single();
-    if (error || !data) {
-      setBusy(false);
-      return setError(error?.message || "تعذّر إنشاء الحلقة");
-    }
-    const names = circle.students.split(/\r?\n|،|,/).map((n) => n.trim()).filter((n) => n.length >= 2).slice(0, 60);
-    if (names.length) {
-      const { error: e2 } = await supabase.from("students").insert(names.map((n) => ({ name: n.slice(0, 100), circle_id: data.id })));
-      if (e2) {
-        setBusy(false);
-        return setError(e2.message);
-      }
-    }
-    setBusy(false);
-    setStep(3);
   }
 
   async function inviteTeacher() {
@@ -243,29 +223,50 @@ export default function Onboarding() {
 
           {step === 2 && (
             <div>
-              <h1 className="ob-title">أول حلقة</h1>
-              <p className="ob-sub">اسم الحلقة وأسماء طلابها (اسم في كل سطر). تستطيع لاحقًا الاستيراد من Excel.</p>
-              <div className="two" style={{ marginTop: 12 }}>
-                <div>
-                  <label>اسم الحلقة</label>
-                  <input value={circle.name} onChange={(e) => setCircle({ ...circle, name: e.target.value })} placeholder="حلقة أبي بكر الصديق" />
+              <h1 className="ob-title">{created.length ? "حلقات مركزك" : "أول حلقة وطلابها"}</h1>
+              <p className="ob-sub">
+                اكتب اسم الحلقة، ثم الصق أسماء طلابها (اسم في كل سطر). تُنشأ الحلقة وطلابها معًا بضغطة واحدة.
+              </p>
+              {created.length > 0 && (
+                <ul className="ob-created" aria-label="الحلقات التي أُنشئت">
+                  {created.map((c) => (
+                    <li key={c.id}>
+                      <span aria-hidden="true">✓</span> <b>{c.name}</b>
+                      <span className="muted small"> · {c.students ? `${c.students} طالبًا` : "بلا طلاب بعد"}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {!created.length || moreCircles ? (
+                <CircleForm
+                  supabase={supabase}
+                  submitLabel={created.length ? "إضافة الحلقة" : "إنشاء الحلقة والطلاب"}
+                  onCreated={(c) => {
+                    setCreated((x) => [...x, c]);
+                    setMoreCircles(false);
+                  }}
+                  secondary={
+                    created.length ? (
+                      <button type="button" className="secondary" onClick={() => setMoreCircles(false)}>
+                        إلغاء
+                      </button>
+                    ) : (
+                      <button type="button" className="secondary" onClick={() => setStep(3)}>
+                        تخطّي الآن
+                      </button>
+                    )
+                  }
+                />
+              ) : (
+                <div className="ob-actions">
+                  <button type="button" className="secondary" onClick={() => setMoreCircles(true)}>
+                    + حلقة أخرى
+                  </button>
+                  <button type="button" onClick={() => setStep(3)}>
+                    التالي
+                  </button>
                 </div>
-                <div>
-                  <label>القسم</label>
-                  <select value={circle.section} onChange={(e) => setCircle({ ...circle, section: e.target.value })}>
-                    <option value="MALE">ذكور</option>
-                    <option value="FEMALE">إناث</option>
-                  </select>
-                </div>
-              </div>
-              <div className="field">
-                <label>الطلاب</label>
-                <textarea rows={6} value={circle.students} onChange={(e) => setCircle({ ...circle, students: e.target.value })} placeholder={"أحمد محمد\nعمر خالد"} />
-              </div>
-              <div className="ob-actions">
-                <button type="button" className="secondary" onClick={() => setStep(3)}>تخطّي</button>
-                <button type="button" onClick={saveCircle} disabled={busy}>{busy ? "جارٍ الحفظ..." : "التالي"}</button>
-              </div>
+              )}
             </div>
           )}
 

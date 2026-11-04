@@ -285,3 +285,37 @@ nav > button svg { flex: none; }
 
 @media (prefers-reduced-motion: reduce) { .login-overlay, .login-overlay .loginbox { animation: none; } }
 @media print { .app-bg, body { background: #fff; } header, nav { display: none !important; } }
+
+/* ---------- Panels with one clear ✕ (components/Panel.tsx) ---------- */
+.panel { border-color: var(--accent-soft); box-shadow: var(--shadow-2); animation: panel-in .18s ease-out; }
+.panel-inset { margin: 12px 0; box-shadow: none; border: 1px solid var(--line); background: var(--surface-2); }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.panel-head h3 { margin: 0; }
+button.icon-close {
+  flex: none; display: inline-grid; place-items: center; width: 36px; height: 36px; padding: 0;
+  border-radius: 999px; background: var(--surface-2); color: var(--muted); border: 1px solid var(--line);
+}
+button.icon-close:hover:not(:disabled) { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+button.icon-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* the button that opened a panel stays itself, just marked as open */
+button.on:not(.chip):not(.palette-opt) { box-shadow: inset 0 0 0 2px var(--accent); }
+@keyframes panel-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .panel { animation: none; } }
+
+/* ---------- New halaqa with its students (components/CircleForm.tsx) ---------- */
+.circle-form textarea { font-size: 15px; line-height: 1.7; }
+.cf-count { margin: 4px 0 0; }
+.ob-created { list-style: none; padding: 0; margin: 12px 0; display: grid; gap: 6px; }
+.ob-created li { padding: 8px 12px; border-radius: 10px; background: var(--accent-soft); }
+.ob-created li > span:first-child { color: var(--accent); font-weight: 700; }
+
+/* ---------- Palettes: nested public pages follow their centre too ---------- */
+/* The old aliases are computed where declared, so redeclare them wherever a palette is set. */
+[data-palette] { --g: var(--accent); --g2: var(--accent-strong); --gold: var(--accent-2); --blue: var(--accent); }
+.color-pick { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.color-pick input[type="color"] { width: 44px; height: 36px; padding: 2px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); }
+.brand-preview { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px; border-radius: 12px; border: 1px dashed var(--line-strong); margin-top: 10px; }
+.reg-toggle { display: flex; align-items: center; gap: 8px; margin: 6px 0 10px; }
+/* table action links never run together on phones */
+td.row-actions { gap: 4px 12px; }
+td.row-actions button.link { padding: 4px 2px; }

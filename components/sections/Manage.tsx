@@ -2,6 +2,8 @@
 
 import { Fragment, useEffect, useState } from "react";
 import { useApp } from "@/components/AppContext";
+import Panel from "@/components/Panel";
+import CircleForm from "@/components/CircleForm";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { adminSoftDelete } from "@/lib/adminDelete";
 import { PROFILE_COLUMNS, store, useStore } from "@/lib/offline/store";
@@ -311,7 +313,7 @@ function Teachers() {
 function Halaqat() {
   const s = useStore();
   const { supabase, showToast } = useApp();
-  const [name, setName] = useState("");
+  const [adding, setAdding] = useState(false);
   const [error, setError] = useState("");
   const circles = s.all("circles").sort((a, b) => Number(b.active) - Number(a.active) || a.name.localeCompare(b.name, "ar"));
   const count = (id: string) => s.all("students").filter((st) => st.active && st.circle_id === id).length;
@@ -320,15 +322,6 @@ function Halaqat() {
     return /circles_name_unique|duplicate/i.test(msg) ? "يوجد حلقة بهذا الاسم (ربما في سجل المحذوفات — استرجعها من هناك)" : msg;
   }
 
-  async function add() {
-    setError("");
-    if (!name.trim()) return setError("أدخل اسم الحلقة");
-    const { data, error } = await supabase.from("circles").insert({ name: name.trim() }).select().single();
-    if (error) return setError(friendly(error.message));
-    await store.applyRemote("circles", [data]);
-    setName("");
-    showToast("تم إنشاء الحلقة");
-  }
 
   async function update(id: string, patch: { name?: string; active?: boolean; section?: string | null }) {
     setError("");
@@ -364,10 +357,27 @@ function Halaqat() {
         اسم الحلقة نص حر، مثل «ذكور – الشيخ أحمد» أو «إناث 10–12». حدّد قسم كل حلقة (الذكور / الإناث)، فيظهر القسم في فرز الطلاب ويجمع
         كل حلقاته.
       </p>
-      <div className="search-row">
-        <input placeholder="اسم الحلقة" value={name} onChange={(e) => setName(e.target.value)} />
-        <button onClick={add}>إضافة حلقة</button>
-      </div>
+      {adding ? (
+        <Panel title="🏫 حلقة جديدة مع طلابها" onClose={() => setAdding(false)} className="panel-inset">
+          <CircleForm
+            supabase={supabase}
+            onCreated={async (c) => {
+              await store.sync();
+              setAdding(false);
+              showToast(c.students ? `تم إنشاء «${c.name}» مع ${c.students} طالبًا` : `تم إنشاء «${c.name}»`);
+            }}
+            secondary={
+              <button type="button" className="secondary" onClick={() => setAdding(false)}>
+                إلغاء
+              </button>
+            }
+          />
+        </Panel>
+      ) : (
+        <div className="row-actions" style={{ margin: "8px 0 12px" }}>
+          <button onClick={() => setAdding(true)}>+ حلقة جديدة</button>
+        </div>
+      )}
       {error && <p className="error-text">{error}</p>}
       <table>
         <thead>

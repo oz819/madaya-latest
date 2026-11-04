@@ -12,7 +12,7 @@ export default async function CenterRegisterPage({ params }: { params: Promise<{
   if (!center) notFound();
   return (
     <PublicShell center={center}>
-      <RegisterForm centerSlug={center.slug} />
+      <RegisterForm centerSlug={center.slug} open={center.registrations_open !== false} centerName={center.name} />
     </PublicShell>
   );
 }

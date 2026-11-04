@@ -7,7 +7,10 @@ import { SECTION_LABEL, SECTIONS, type Section } from "@/lib/filter";
 
 const EMPTY = { name: "", age: "", section: "" as Section | "", guardianName: "", phone: "", memorized: "", website: "" };
 
-export default function RegisterForm({ centerSlug }: { centerSlug: string }) {
+// Letters, spaces and . ' - only (the database checks the same).
+const NAME_RE = /^[^0-9٠-٩@/\\{}[\]|$%^*=<>]+$/;
+
+export default function RegisterForm({ centerSlug, centerName, open = true }: { centerSlug: string; centerName?: string; open?: boolean }) {
   const [supabase] = useState(() => createClient());
   const [f, setF] = useState(EMPTY);
   const [error, setError] = useState("");
@@ -21,6 +24,8 @@ export default function RegisterForm({ centerSlug }: { centerSlug: string }) {
     setError("");
     const name = f.name.trim();
     if (name.length < 2) return setError("اكتبوا اسم الطالب");
+    if (!NAME_RE.test(name) || /https?:|www\./i.test(name)) return setError("اسم الطالب: حروف فقط");
+    if (/https?:|www\./i.test(f.memorized + f.guardianName)) return setError("لا تضعوا روابط في الطلب");
     const age = f.age.trim() ? Number(f.age.replace(/[٠-٩]/g, (c) => String(c.charCodeAt(0) - 0x660))) : null;
     if (age !== null && !(Number.isInteger(age) && age >= 3 && age <= 80)) return setError("العمر غير صحيح");
     if (!f.section) return setError("اختاروا القسم");
@@ -42,6 +47,15 @@ export default function RegisterForm({ centerSlug }: { centerSlug: string }) {
     if (error) return setError(/[ء-ي]/.test(error.message) ? error.message : "تعذّر الإرسال، حاولوا مرة أخرى");
     setSent(name);
     setF(EMPTY);
+  }
+
+  if (!open) {
+    return (
+      <div className="card center register-done">
+        <h2>التسجيل مغلق حاليًا</h2>
+        <p>لا يستقبل {centerName ?? "المركز"} طلبات تسجيل جديدة الآن. تواصلوا مع إدارة المركز للاستفسار.</p>
+      </div>
+    );
   }
 
   if (sent) {

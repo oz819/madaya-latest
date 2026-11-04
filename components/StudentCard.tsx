@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { confirmDialog } from "@/components/ConfirmDialog";
+import Panel from "@/components/Panel";
 import { adminSoftDelete } from "@/lib/adminDelete";
 import QuranTrackSection from "@/components/card/QuranTrackSection";
 import ArabicSection from "@/components/card/ArabicSection";
@@ -121,13 +122,15 @@ export default function StudentCard({ studentId, onClose }: { studentId: string;
             )}
             {unsynced && <span className="badge warn" style={{ marginInlineStart: 8 }}>تغييرات لم تُرسل بعد</span>}
           </div>
-          <button className="secondary" onClick={() => setEditing((e) => !e)}>
-            {editing ? "إغلاق" : "تعديل الطالب"}
+          <button className={`secondary${editing ? " on" : ""}`} aria-pressed={editing} onClick={() => setEditing(true)}>
+            ✏️ تعديل الطالب
           </button>
         </div>
 
         {editing && (
-          <EditStudent studentId={studentId} isAdmin={profile.role === "ADMIN"} onDone={() => setEditing(false)} onDeleted={onClose} />
+          <Panel title="✏️ تعديل بيانات الطالب" onClose={() => setEditing(false)} className="panel-inset">
+            <EditStudent studentId={studentId} isAdmin={profile.role === "ADMIN"} onDone={() => setEditing(false)} onDeleted={onClose} />
+          </Panel>
         )}
 
         <div className="att-row">
@@ -378,6 +381,9 @@ function EditStudent({
       </div>
       <div className="row-actions" style={{ alignSelf: "end" }}>
         <button onClick={save}>حفظ</button>
+        <button className="secondary" onClick={onDone}>
+          إلغاء التعديل
+        </button>
         {isAdmin && (
           <button className="secondary" onClick={toggleArchive}>
             {student.active ? "أرشفة" : "إلغاء الأرشفة"}

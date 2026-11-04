@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useApp } from "@/components/AppContext";
+import Panel from "@/components/Panel";
 import { useScope } from "@/components/FilterBar";
 import { useRankData } from "@/components/ranking/useRankData";
 import { useHistoryScope } from "@/components/ranking/useHistoryScope";
@@ -104,13 +105,7 @@ export default function SendReports({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="card send-reports">
-      <div className="title">
-        <h3>📤 إرسال تقارير الحلقة</h3>
-        <button className="link" onClick={onClose}>
-          إغلاق
-        </button>
-      </div>
+    <Panel title="📤 إرسال تقارير الحلقة" onClose={onClose} className="send-reports">
       <div className="recent">
         <button className={`chip ${mode === "DAILY" ? "on" : ""}`} onClick={() => setMode("DAILY")}>
           تقرير اليوم
@@ -170,7 +165,7 @@ export default function SendReports({ onClose }: { onClose: () => void }) {
         ))}
         {!list.length && <li className="muted">لا يوجد طلاب هنا.</li>}
       </ul>
-    </div>
+    </Panel>
   );
 }
 

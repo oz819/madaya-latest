@@ -39,6 +39,7 @@ export type Database = {
           logo_url: string | null
           palette: string
           primary_color: string | null
+          registrations_open: boolean
           about: string | null
           extra_notes: string | null
           contact_phone: string | null
@@ -67,6 +68,7 @@ export type Database = {
           logo_url?: string | null
           palette?: string
           primary_color?: string | null
+          registrations_open?: boolean
           about?: string | null
           extra_notes?: string | null
           contact_phone?: string | null
@@ -95,6 +97,7 @@ export type Database = {
           logo_url?: string | null
           palette?: string
           primary_color?: string | null
+          registrations_open?: boolean
           about?: string | null
           extra_notes?: string | null
           contact_phone?: string | null
@@ -1864,6 +1867,10 @@ export type Database = {
       accept_invite: { Args: { p_token: string; p_name?: string | null }; Returns: Json }
       super_centers: { Args: never; Returns: Json }
       super_set_center: { Args: { p_id: string; p_status?: string | null; p_plan?: string | null }; Returns: undefined }
+      admin_create_circle: {
+        Args: { p_name: string; p_section?: string | null; p_students?: Json }
+        Returns: Json
+      }
       admin_accept_registration: {
         Args: { p_circle_id: string; p_id: string }
         Returns: string

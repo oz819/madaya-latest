@@ -6,16 +6,15 @@ import { createClient } from "@/utils/supabase/client";
 import { applyPalette } from "@/lib/center";
 
 type Row = {
-  id: string; slug: string; name: string; country: string | null; city: string | null; status: "TRIAL" | "ACTIVE" | "SUSPENDED";
-  plan: "FREE" | "BASIC" | "PRO"; domain: string | null; created_at: string; trial_ends_at: string | null; owner_email: string | null;
+  id: string; slug: string; name: string; country: string | null; city: string | null; status: "ACTIVE" | "SUSPENDED";
+  plan: "FREE" | "BASIC" | "PRO"; domain: string | null; created_at: string; owner_email: string | null;
   staff: number; students: number; circles: number; last_activity: string | null;
 };
 
-const STATUS = { TRIAL: "تجربة", ACTIVE: "فعّال", SUSPENDED: "موقوف" } as const;
-const PLAN = { FREE: "مجانية", BASIC: "أساسية", PRO: "احترافية" } as const;
+const STATUS = { ACTIVE: "فعّال", SUSPENDED: "موقوف" } as const;
 
-// لوحة إدارة المنصة (Super Admin): every centre, its size and activity; activate or suspend it,
-// change its plan. It never shows a centre's daily data (students' names, records).
+// لوحة إدارة المنصة (Super Admin): every centre, its size and activity; activate or suspend it.
+// It never shows a centre's daily data (students' names, records).
 export default function SuperAdmin() {
   const [supabase] = useState(() => createClient());
   const [rows, setRows] = useState<Row[] | null>(null);
@@ -33,7 +32,7 @@ export default function SuperAdmin() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function set(id: string, patch: { p_status?: string; p_plan?: string }) {
+  async function set(id: string, patch: { p_status?: string }) {
     const { error } = await supabase.rpc("super_set_center", { p_id: id, ...patch });
     if (error) return setError(error.message);
     load();
@@ -83,7 +82,7 @@ export default function SuperAdmin() {
               <table className="sx-table">
                 <thead>
                   <tr>
-                    <th>المركز</th><th>الدولة</th><th>الحالة</th><th>الخطة</th><th>طلاب</th><th>حلقات</th><th>كادر</th><th>آخر نشاط</th><th>صاحب المركز</th>
+                    <th>المركز</th><th>الدولة</th><th>الحالة</th><th>طلاب</th><th>حلقات</th><th>كادر</th><th>آخر نشاط</th><th>صاحب المركز</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -97,11 +96,6 @@ export default function SuperAdmin() {
                       <td>
                         <select value={r.status} onChange={(e) => set(r.id, { p_status: e.target.value })} aria-label="الحالة" className={`status ${r.status}`}>
                           {Object.entries(STATUS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                        </select>
-                      </td>
-                      <td>
-                        <select value={r.plan} onChange={(e) => set(r.id, { p_plan: e.target.value })} aria-label="الخطة">
-                          {Object.entries(PLAN).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                         </select>
                       </td>
                       <td>{r.students}</td>

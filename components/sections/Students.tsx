@@ -6,6 +6,7 @@ import StudentCard from "@/components/StudentCard";
 import { useScope } from "@/components/FilterBar";
 import LessonCard from "@/components/LessonCard";
 import SendReports from "@/components/SendReports";
+import Panel from "@/components/Panel";
 import AbsenceAlerts from "@/components/AbsenceAlerts";
 import ReadyForExam from "@/components/ReadyForExam";
 import { matchesName } from "@/lib/arabic";
@@ -116,6 +117,20 @@ export default function Students({
 
       {sending && <SendReports onClose={() => setSending(false)} />}
 
+      {adding && (
+        <Panel title="➕ إضافة طالب" onClose={() => setAdding(false)}>
+          <AddStudent
+            defaultCircleId={scopedCircles[0]?.id ?? ""}
+            onCancel={() => setAdding(false)}
+            onAdded={(id) => {
+              setAdding(false);
+              showToast("تمت إضافة الطالب");
+              open(id);
+            }}
+          />
+        </Panel>
+      )}
+
       {rollCall && (
         <RollCall
           circles={scopedCircles}
@@ -128,25 +143,17 @@ export default function Students({
         <div className="title">
           <h3>👨‍🎓 الطلاب</h3>
           <div className="row-actions">
-            <button className="secondary" onClick={() => setRollCall((r) => !r)}>
-              {rollCall ? "إغلاق التحضير" : "📋 تحضير سريع"}
+            <button className={`secondary${rollCall ? " on" : ""}`} aria-pressed={rollCall} onClick={() => setRollCall(true)}>
+              📋 تحضير سريع
             </button>
-            <button className="secondary" onClick={() => setSending((v) => !v)}>
-              {sending ? "إغلاق الإرسال" : "📤 إرسال التقارير"}
+            <button className={`secondary${sending ? " on" : ""}`} aria-pressed={sending} onClick={() => setSending(true)}>
+              📤 إرسال التقارير
             </button>
-            <button onClick={() => setAdding((a) => !a)}>{adding ? "إغلاق" : "+ إضافة طالب"}</button>
+            <button className={adding ? "on" : ""} aria-pressed={adding} onClick={() => setAdding(true)}>
+              + إضافة طالب
+            </button>
           </div>
         </div>
-        {adding && (
-          <AddStudent
-            defaultCircleId={scopedCircles[0]?.id ?? ""}
-            onAdded={(id) => {
-              setAdding(false);
-              showToast("تمت إضافة الطالب");
-              open(id);
-            }}
-          />
-        )}
         <div className="search-row" style={{ gridTemplateColumns: "1fr" }}>
           <input type="search" placeholder="ابحث باسم الطالب..." value={query} onChange={(e) => setQuery(e.target.value)} />
         </div>
@@ -237,7 +244,15 @@ export default function Students({
   );
 }
 
-function AddStudent({ defaultCircleId, onAdded }: { defaultCircleId: string; onAdded: (id: string) => void }) {
+function AddStudent({
+  defaultCircleId,
+  onAdded,
+  onCancel,
+}: {
+  defaultCircleId: string;
+  onAdded: (id: string) => void;
+  onCancel: () => void;
+}) {
   const s = useStore();
   const circles = s.all("circles").filter((c) => c.active);
   const books = s.all("arabic_books").filter((b) => b.active);
@@ -271,7 +286,14 @@ function AddStudent({ defaultCircleId, onAdded }: { defaultCircleId: string; onA
   if (!circles.length) return <p className="notice">لا توجد حلقات بعد. يُنشئها المدير من شاشة الإدارة.</p>;
 
   return (
-    <div className="formgrid compact" style={{ margin: "10px 0" }}>
+    <form
+      className="formgrid compact"
+      onSubmit={(e) => {
+        e.preventDefault();
+        add();
+      }}
+      noValidate
+    >
       <div>
         <label>اسم الطالب</label>
         <input value={name} onChange={(e) => setName(e.target.value)} />
@@ -301,11 +323,14 @@ function AddStudent({ defaultCircleId, onAdded }: { defaultCircleId: string; onA
         <label>رقم واتساب ولي الأمر (اختياري)</label>
         <input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" dir="ltr" inputMode="tel" placeholder="0912345678" />
       </div>
-      <div style={{ alignSelf: "end" }}>
-        <button onClick={add}>حفظ الطالب</button>
+      <div className="row-actions" style={{ alignSelf: "end" }}>
+        <button type="submit">حفظ الطالب</button>
+        <button type="button" className="secondary" onClick={onCancel}>
+          إلغاء
+        </button>
       </div>
       {error && <p className="error-text">{error}</p>}
-    </div>
+    </form>
   );
 }
 
@@ -357,13 +382,7 @@ function RollCall({ circles, onClose, onDone }: { circles: Circle[]; onClose: ()
   }
 
   return (
-    <div className="card rollcall">
-      <div className="title">
-        <h3>📋 تحضير اليوم</h3>
-        <button className="link" onClick={onClose}>
-          إغلاق
-        </button>
-      </div>
+    <Panel title="📋 تحضير اليوم" onClose={onClose} className="rollcall">
       <div className="formgrid compact">
         <div>
           <label>الحلقة</label>
@@ -406,7 +425,7 @@ function RollCall({ circles, onClose, onDone }: { circles: Circle[]; onClose: ()
       ) : (
         <p className="muted">لا يوجد طلاب في هذه الحلقة.</p>
       )}
-    </div>
+    </Panel>
   );
 }
 

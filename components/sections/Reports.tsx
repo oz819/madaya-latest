@@ -188,7 +188,9 @@ export default function Reports() {
       <div className="card no-print">
         <div className="title">
           <h3>📊 التقارير</h3>
-          <button onClick={() => setSending((v) => !v)}>{sending ? "إغلاق الإرسال" : "📤 إرسال تقارير الحلقة"}</button>
+          <button className={sending ? "on" : ""} aria-pressed={sending} onClick={() => setSending(true)}>
+            📤 إرسال تقارير الحلقة
+          </button>
         </div>
         <div className="formgrid compact">
           <div>

@@ -29,6 +29,7 @@ export type PublicCenter = {
   address: string | null;
   locale: "ar" | "en";
   honor_enabled: boolean;
+  registrations_open?: boolean;
   extra_notes?: string | null;
 };
 
@@ -46,12 +47,11 @@ export type MyContext = {
     palette: Palette;
     primary_color: string | null;
     about: string | null;
-    status: "TRIAL" | "ACTIVE" | "SUSPENDED";
+    status: "ACTIVE" | "SUSPENDED";
     plan: "FREE" | "BASIC" | "PRO";
     onboarded: boolean;
     timezone: string;
     locale: "ar" | "en";
-    trial_ends_at: string | null;
   } | null;
   membership: { role: CenterRole; is_owner: boolean; active: boolean; name: string; default_filter: string | null } | null;
   centers: { id: string; slug: string; name: string; role: CenterRole; status: string; active: boolean }[];
